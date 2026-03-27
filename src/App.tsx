@@ -1,24 +1,27 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import gsap from 'gsap';
-import Draggable from 'gsap/Draggable';
+import { Draggable } from 'gsap/all';
+// @ts-ignore
 import canvasSketch from 'canvas-sketch';
 import primaryLogo from './assets/primaryLogo.png';
 
 gsap.registerPlugin(Draggable);
 
-// --- 1. CANVAS-SKETCH UTILITIES & CLASSES ---
-const randomRange = (min, max) => Math.random() * (max - min) + min;
+// CANVAS-SKETCH UTILITIES & CLASSES
+const randomRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-const mapRange = (value, inMin, inMax, outMin, outMax) => {
+const mapRange = (value: number, inMin: number, inMax: number, outMin: number, outMax: number) => {
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 };
 
 class Vector {
-  constructor(x, y) {
+  x: number;
+  y: number;
+  constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
   }
-  getDistance(v) {
+  getDistance(v: Vector) {
     const dx = this.x - v.x;
     const dy = this.y - v.y;
     return Math.sqrt(dx * dx + dy * dy);
@@ -26,13 +29,16 @@ class Vector {
 }
 
 class Agent {
-  constructor(x, y) {
+  pos: Vector;
+  vel: Vector;
+  radius: number;
+  constructor(x: number, y: number) {
     this.pos = new Vector(x, y);
     this.vel = new Vector(randomRange(-0.5, 0.5), randomRange(-0.5, 0.5));
     this.radius = randomRange(4, 10);
   }
 
-  update(width, height) {
+  update(width: number, height: number) {
     this.pos.x += this.vel.x;
     this.pos.y += this.vel.y;
 
@@ -42,7 +48,7 @@ class Agent {
     if (this.pos.y < 0) this.pos.y = height;
   }
 
-  draw(ctx) {
+  draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.pos.x, this.pos.y);
     ctx.beginPath();
@@ -56,14 +62,14 @@ class Agent {
   }
 }
 
-// --- 2. CANVAS SKETCH SETUP ---
+// CANVAS SKETCH SETUP
 const settings = {
   animate: true,
   resizeCanvas: true,
 };
 
-const sketch = ({ width, height }) => {
-  const agents = [];
+const sketch = ({ width, height }: { width: number; height: number }) => {
+  const agents: Agent[] = [];
   const numAgents = 120;
   const connectDist = 150;
 
@@ -71,7 +77,7 @@ const sketch = ({ width, height }) => {
     agents.push(new Agent(randomRange(0, width), randomRange(0, height)));
   }
 
-  return ({ context, width, height }) => {
+  return ({ context, width, height }: { context: CanvasRenderingContext2D; width: number; height: number }) => {
     context.fillStyle = '#010101';
     context.fillRect(0, 0, width, height);
 
@@ -99,12 +105,21 @@ const sketch = ({ width, height }) => {
   };
 };
 
-// --- 3. THE WINDOW COMPONENT ---
-const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosition }) => {
-  const windowRef = useRef(null);
-  const dragHandleRef = useRef(null);
+// THE WINDOW COMPONENT 
+interface WindowProps {
+  id: string;
+  title: string;
+  content: string;
+  zIndex?: number;
+  onClose: (id: string) => void;
+  onFocus: (id: string) => void;
+  defaultPosition: { top: string; left: string };
+}
 
-  // Keep track of the latest onFocus function without triggering re-renders
+const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosition }: WindowProps) => {
+  const windowRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
+
   const onFocusRef = useRef(onFocus);
   useLayoutEffect(() => {
     onFocusRef.current = onFocus;
@@ -114,13 +129,11 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
     if (!windowRef.current || !dragHandleRef.current) return;
 
     let ctx = gsap.context(() => {
-      // 1. Entrance Animation
       gsap.fromTo(windowRef.current, 
         { opacity: 0, scale: 0.95, y: 15 },
         { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "power3.out" }
       );
 
-      // 2. Init Draggable
       Draggable.create(windowRef.current, {
         type: "x,y",
         trigger: dragHandleRef.current,
@@ -131,7 +144,7 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
     });
 
     return () => ctx.revert(); 
-  }, []); 
+  }, [id]); 
 
   return (
     <div
@@ -163,16 +176,14 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
   );
 };
 
-// --- 4. NAV LINK COMPONENT (SQUIGGLY SVG UNDERLINE) ---
-const NavLink = ({ title, onClick }) => {
+//  NAV LINK COMPONENT 
+const NavLink = ({ title, onClick }: { title: string, onClick: () => void }) => {
   return (
     <button
       onClick={onClick}
       className="relative group text-[#FFFCF5]/60 hover:text-[#E1FF00] transition-colors duration-300 py-1"
     >
       <span className="relative z-10">{title}</span>
-      
-      {/* The Squiggly SVG Underline */}
       <svg
         className="absolute left-0 -bottom-1.5 w-full h-[8px] pointer-events-none opacity-80"
         viewBox="0 0 100 10"
@@ -190,15 +201,17 @@ const NavLink = ({ title, onClick }) => {
   );
 };
 
-// --- 5. THE MAIN APP ---
+// THE MAIN APP
+type PageKey = 'solutions' | 'platform' | 'contact';
+
 export default function App() {
-  const canvasRef = useRef(null);
-  const [openWindows, setOpenWindows] = useState([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [openWindows, setOpenWindows] = useState<(WindowProps & { zIndex: number })[]>([]);
   const [highestZ, setHighestZ] = useState(10);
 
   useEffect(() => {
     const originalTitle = document.title;
-    const scrollMessage = " Where do you think you're going?  ";
+    const scrollMessage = "Come back?  ";
     const handleBlur = () => { document.title = scrollMessage; };
     const handleFocus = () => { document.title = originalTitle; };
     window.addEventListener('blur', handleBlur);
@@ -211,14 +224,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    let manager;
+    let manager: any;
     if (canvasRef.current) {
-      canvasSketch(sketch, { ...settings, canvas: canvasRef.current }).then((m) => { manager = m; });
+      canvasSketch(sketch, { ...settings, canvas: canvasRef.current }).then((m: any) => { manager = m; });
     }
     return () => { if (manager) manager.unload(); };
   }, []);
 
-  const pages = {
+  const pages: Record<PageKey, Omit<WindowProps, 'onClose' | 'onFocus'>> = {
     solutions: { 
       id: 'solutions', title: 'Solutions +', 
       content: 'Strategic solutions designed from first principles to operate in complex, constrained, and continually changing conditions.',
@@ -231,12 +244,12 @@ export default function App() {
     },
     contact: { 
       id: 'contact', title: 'Contact', 
-      content: 'Secure a partnership. Request a demo to explore our capabilities.',
+      content: 'Secure a partnership. Request a demo to visualize our capabilities. Email: thenuancedstudio@gmail.com',
       defaultPosition: { top: '40%', left: '30%' }
     }
   };
 
-  const focusWindow = (id) => {
+  const focusWindow = (id: string) => {
     setHighestZ((prevZ) => {
       const nextZ = prevZ + 1;
       setOpenWindows((prevWins) => 
@@ -246,10 +259,9 @@ export default function App() {
     });
   };
 
-  const openWindow = (pageKey) => {
+  const openWindow = (pageKey: PageKey) => {
     const page = pages[pageKey];
     
-    // Check if it's already open using the latest state directly without nesting state setters
     setOpenWindows((prevWins) => {
       if (prevWins.find((w) => w.id === page.id)) {
         focusWindow(page.id);
@@ -257,19 +269,19 @@ export default function App() {
       } else {
         const nextZ = highestZ + 1;
         setHighestZ(nextZ);
-        return [...prevWins, { ...page, zIndex: nextZ }];
+        return [...prevWins, { ...page, zIndex: nextZ } as WindowProps & { zIndex: number }];
       }
     });
   };
 
-  const closeWindow = (id) => {
+  const closeWindow = (id: string) => {
     setOpenWindows((prevWins) => prevWins.filter((w) => w.id !== id));
   };
 
   return (
     <div className="relative w-full h-screen bg-[#010101] overflow-hidden font-sans text-[#FFFCF5] flex flex-col">
       
-      {/* --- TOP HALF (50vh) --- */}
+      {/*  TOP HALF (50vh)  */}
       <div className="h-[50vh] flex flex-col relative z-10 px-6 md:px-8 pt-6">
         
         {/* NAVBAR ON A 12-COLUMN GRID */}
@@ -326,7 +338,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* --- BOTTOM HALF (50vh Canvas) --- */}
+      {/* BOTTOM HALF (50vh Canvas) */}
       <div className="h-[50vh] w-full relative border-t border-[#E1FF00] z-0">
         <canvas
           ref={canvasRef}
