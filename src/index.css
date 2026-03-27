@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* 1. Define the Custom Font Family */
+@font-face {
+  font-family: 'Clash Grotesk';
+  src: url('./assets/fonts/ClashGrotesk-Regular.woff2') format('woff2'),
+       url('./assets/fonts/ClashGrotesk-Regular.woff') format('woff');
+  font-weight: 400; /* Regular */
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Clash Grotesk';
+  src: url('./assets/fonts/ClashGrotesk-Semibold.woff2') format('woff2'),
+       url('./assets/fonts/ClashGrotesk-Semibold.woff') format('woff');
+  font-weight: 600; /* Semibold */
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. Inject it into Tailwind v4's Theme */
+@theme {
+  /* This overrides the default 'font-sans' utility to use Clash Grotesk first */
+  --font-sans: "Clash Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 3. Global Resets */
+body {
+  background-color: #010101;
+  color: #FFFCF5;
+  overflow: hidden;
+  /* Apply the font globally */
+  font-family: var(--font-sans); 
+}
