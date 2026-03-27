@@ -4,6 +4,8 @@ import { Draggable } from 'gsap/all';
 // @ts-ignore
 import canvasSketch from 'canvas-sketch';
 import primaryLogo from './assets/primaryLogo.png';
+import GlowButton from './GlowButton';
+import CustomCursor from './CustomCursor';
 
 gsap.registerPlugin(Draggable);
 
@@ -154,6 +156,7 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
       className="w-full max-w-[400px] bg-[#010101]/90 backdrop-blur-xl border border-[#FFFCF5]/10 shadow-2xl rounded-sm overflow-hidden flex flex-col"
     >
       <div 
+        data-cursor="drag"
         ref={dragHandleRef}
         className="bg-[#FFFCF5]/5 border-b border-[#FFFCF5]/10 px-4 py-3 flex justify-between items-center cursor-grab active:cursor-grabbing"
       >
@@ -180,6 +183,7 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
 const NavLink = ({ title, onClick }: { title: string, onClick: () => void }) => {
   return (
     <button
+      data-cursor="link"
       onClick={onClick}
       className="relative group text-[#FFFCF5]/60 hover:text-[#E1FF00] transition-colors duration-300 py-1"
     >
@@ -209,9 +213,59 @@ export default function App() {
   const [openWindows, setOpenWindows] = useState<(WindowProps & { zIndex: number })[]>([]);
   const [highestZ, setHighestZ] = useState(10);
 
+  //  BOOT SEQUENCE REFS 
+  const bootScreenRef = useRef<HTMLDivElement>(null);
+  const bootLogoPathRef = useRef<SVGPathElement>(null);
+  const bootLineRef = useRef<HTMLDivElement>(null);
+  const bootTextRef = useRef<HTMLDivElement>(null);
+  const termLine1 = useRef<HTMLParagraphElement>(null);
+  const termLine2 = useRef<HTMLParagraphElement>(null);
+  const termLine3 = useRef<HTMLParagraphElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+
+  //  BOOT SEQUENCE ANIMATION 
+  useLayoutEffect(() => {
+    let ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          if (bootScreenRef.current) bootScreenRef.current.style.display = 'none';
+        }
+      });
+
+      // Phase 1: Draw the SVG Logo 
+      tl.to(bootLogoPathRef.current, { strokeDashoffset: 0, duration: 1.2, ease: "power3.inOut" });
+
+      // Phase 2: Draw Horizon Line 
+      tl.to(bootLineRef.current, { scaleX: 1, duration: 0.8, ease: "power3.inOut" }, "-=0.4");
+
+      // Phase 3: Terminal Typing
+      tl.to(termLine1.current, { opacity: 1, duration: 0.1 }, "+=0.2");
+      tl.to(termLine2.current, { opacity: 1, duration: 0.1 }, "+=0.4");
+      tl.to(termLine3.current, { opacity: 1, duration: 0.1 }, "+=0.4");
+
+      // Phase 4: The Snap
+      tl.to(bootTextRef.current, { y: "-=40", opacity: 0, duration: 0.6, ease: "power3.in" }, "+=0.6");
+      tl.to(bootScreenRef.current, { opacity: 0, duration: 0.8, ease: "power3.inOut" }, "<");
+
+      tl.fromTo(heroContentRef.current, 
+        { y: 30, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 1, ease: "power3.out" }, 
+        "-=0.4"
+      );
+      tl.fromTo(canvasContainerRef.current, 
+        { opacity: 0 }, 
+        { opacity: 1, duration: 1.5, ease: "power2.out" }, 
+        "<"
+      );
+    });
+
+    return () => ctx.revert();
+  }, []);
+
   useEffect(() => {
     const originalTitle = document.title;
-    const scrollMessage = "Come back?  ";
+    const scrollMessage = "uanced studio ";
     const handleBlur = () => { document.title = scrollMessage; };
     const handleFocus = () => { document.title = originalTitle; };
     window.addEventListener('blur', handleBlur);
@@ -280,9 +334,55 @@ export default function App() {
 
   return (
     <div className="relative w-full h-screen bg-[#010101] overflow-hidden font-sans text-[#FFFCF5] flex flex-col">
+
+      <CustomCursor />
+
+      {/*  THE PERMANENT HORIZON LINE */}
+      <div 
+        ref={bootLineRef} 
+        className="absolute top-[50vh] left-0 w-full h-[1px] bg-[#E1FF00] origin-left scale-x-0 z-[15] pointer-events-none" 
+      />
       
-      {/*  TOP HALF (50vh)  */}
-      <div className="h-[50vh] flex flex-col relative z-10 px-6 md:px-8 pt-6">
+      {/*  THE BOOT SCREEN OVERLAY  */}
+      <div ref={bootScreenRef} className="fixed inset-0 z-50 bg-[#010101] pointer-events-none flex flex-col">
+        
+        {/* Exact structural clone of the padding/grid to ensure pixel-perfect SVG alignment */}
+        <div className="h-[50vh] flex flex-col relative px-6 md:px-8 pt-6">
+          <nav className="grid grid-cols-12 gap-4 w-full items-center">
+            <div className="col-span-4 md:col-span-6 flex justify-start">
+              {/* SVG wrapped in the identical h-6 container to match the real PNG */}
+              <div className="h-6 flex items-center justify-start">
+                <svg viewBox="0 0 130 100" className="h-full w-auto overflow-visible">
+                  <path
+                    ref={bootLogoPathRef}
+                    // Adjusted path to precisely match the pinched bowtie shape
+                    d="M 2 2 Q 65 35 128 2 L 128 98 Q 65 65 2 98 Z"
+                    fill="transparent"
+                    stroke="#E1FF00"
+                    strokeWidth="8"
+                    strokeLinejoin="round"
+                    pathLength="100"
+                    className="[stroke-dasharray:100] [stroke-dashoffset:100]"
+                  />
+                </svg>
+              </div>
+            </div>
+          </nav>
+        </div>
+
+        {/* Phase 3: The Terminal Text positioned exactly above the horizon line */}
+        <div 
+          ref={bootTextRef} 
+          className="absolute bottom-[52vh] left-6 md:left-8 flex flex-col justify-end text-[13px] md:text-[15px] text-[#FFFCF5]/70 tracking-wide font-mono space-y-2"
+        >
+          <p ref={termLine1} className="opacity-0">&gt; initializing nodes...</p>
+          <p ref={termLine2} className="opacity-0">&gt; defining constraints...</p>
+          <p ref={termLine3} className="opacity-0 text-[#E1FF00]">&gt; BUILT ON CERTAINTY.</p>
+        </div>
+      </div>
+
+      {/* TOP HALF (50vh)  */}
+      <div ref={heroContentRef} className="h-[50vh] flex flex-col relative z-10 px-6 md:px-8 pt-6 opacity-0">
         
         {/* NAVBAR ON A 12-COLUMN GRID */}
         <nav className="grid grid-cols-12 gap-4 w-full items-center">
@@ -305,9 +405,18 @@ export default function App() {
           
           {/* CTA Button */}
           <div className="col-span-8 md:col-start-11 md:col-span-2 flex justify-end">
-            <button className="border border-[#E1FF00] text-[#FFFCF5] px-4 py-2.5 text-[14px] font-medium tracking-wide transition-colors duration-300 hover:bg-[#E1FF00] hover:text-[#010101]">
-              Request a Demo
-            </button>
+            <GlowButton 
+            edgeSensitivity={4}
+            glowColor="40 80 80"
+            backgroundColor="#010101"
+            borderRadius={5}
+            glowRadius={10}
+            glowIntensity={0.1}
+            coneSpread={5}
+            animated
+            colors={['#E1FF00', '#F4FF81', '#C6FF00']}
+            text="REQUEST A DEMO" 
+            onClick={() => openWindow('contact')} />
           </div>
 
         </nav>
@@ -339,7 +448,7 @@ export default function App() {
       </div>
 
       {/* BOTTOM HALF (50vh Canvas) */}
-      <div className="h-[50vh] w-full relative border-t border-[#E1FF00] z-0">
+      <div ref={canvasContainerRef} className="h-[50vh] w-full relative z-0 opacity-0">
         <canvas
           ref={canvasRef}
           style={{ display: 'block', width: '100%', height: '100%' }}
