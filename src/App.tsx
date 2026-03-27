@@ -265,7 +265,7 @@ export default function App() {
 
   useEffect(() => {
     const originalTitle = document.title;
-    const scrollMessage = "uanced studio ";
+    const scrollMessage = "Come back?";
     const handleBlur = () => { document.title = scrollMessage; };
     const handleFocus = () => { document.title = originalTitle; };
     window.addEventListener('blur', handleBlur);
