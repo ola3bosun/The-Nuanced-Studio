@@ -33,3 +33,8 @@ body {
   /* Apply the font globally */
   font-family: var(--font-sans); 
 }
+
+::selection {
+  background-color: #FFFCF5;
+  color: #010101;
+}

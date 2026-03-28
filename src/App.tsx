@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { Draggable } from 'gsap/all';
 // @ts-ignore
 import canvasSketch from 'canvas-sketch';
-import primaryLogo from './assets/primaryLogo.png';
+import primaryLogo2 from './assets/primaryLogo2.png'
 import GlowButton from './GlowButton';
 import CustomCursor from './CustomCursor';
 
@@ -234,19 +234,20 @@ export default function App() {
       });
 
       // Phase 1: Draw the SVG Logo 
-      tl.to(bootLogoPathRef.current, { strokeDashoffset: 0, duration: 1.2, ease: "power3.inOut" });
+      tl.to(bootLogoPathRef.current, { strokeDashoffset: 0, duration: 2, ease: "power1.inOut" });
 
       // Phase 2: Draw Horizon Line 
-      tl.to(bootLineRef.current, { scaleX: 1, duration: 0.8, ease: "power3.inOut" }, "-=0.4");
+      tl.to(bootLineRef.current, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut" }, 2.0);
+      // tl.to(bootLineRef.current, { scaleX: 1, duration: 1.2, ease: "back.out" }, "<");
 
       // Phase 3: Terminal Typing
-      tl.to(termLine1.current, { opacity: 1, duration: 0.1 }, "+=0.2");
-      tl.to(termLine2.current, { opacity: 1, duration: 0.1 }, "+=0.4");
-      tl.to(termLine3.current, { opacity: 1, duration: 0.1 }, "+=0.4");
+      tl.to(termLine1.current, { opacity: 1, duration: 0.25 }, "+=0.2");
+      tl.to(termLine2.current, { opacity: 1, duration: 0.15 }, "+=0.4");
+      tl.to(termLine3.current, { opacity: 1, duration: 1.5 }, "+=0.4");
 
       // Phase 4: The Snap
       tl.to(bootTextRef.current, { y: "-=40", opacity: 0, duration: 0.6, ease: "power3.in" }, "+=0.6");
-      tl.to(bootScreenRef.current, { opacity: 0, duration: 0.8, ease: "power3.inOut" }, "<");
+      tl.to(bootScreenRef.current, { opacity: 0, duration: 0.5, ease: "power1.inOut" }, "<");
 
       tl.fromTo(heroContentRef.current, 
         { y: 30, opacity: 0 }, 
@@ -338,10 +339,22 @@ export default function App() {
       <CustomCursor />
 
       {/*  THE PERMANENT HORIZON LINE */}
-      <div 
-        ref={bootLineRef} 
-        className="absolute top-[50vh] left-0 w-full h-[1px] bg-[#E1FF00] origin-left scale-x-0 z-[15] pointer-events-none" 
-      />
+      <div className="absolute top-[50vh] left-0 w-full h-[1px] z-[15] pointer-events-none">
+        <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
+          <line
+            ref={bootLineRef}
+            x1="0"
+            y1="0"
+            x2="100%"
+            y2="0"
+            vectorEffect="non-scaling-stroke"
+            stroke="#E1FF00"
+            strokeWidth="1"
+            pathLength="100"
+            className="[stroke-dasharray:100] [stroke-dashoffset:100]"
+          />
+        </svg>
+      </div>
       
       {/*  THE BOOT SCREEN OVERLAY  */}
       <div ref={bootScreenRef} className="fixed inset-0 z-50 bg-[#010101] pointer-events-none flex flex-col">
@@ -358,7 +371,7 @@ export default function App() {
                     // Adjusted path to precisely match the pinched bowtie shape
                     d="M 2 2 Q 65 35 128 2 L 128 98 Q 65 65 2 98 Z"
                     fill="transparent"
-                    stroke="#E1FF00"
+                    stroke="#FFFCF5"
                     strokeWidth="8"
                     strokeLinejoin="round"
                     pathLength="100"
@@ -373,11 +386,11 @@ export default function App() {
         {/* Phase 3: The Terminal Text positioned exactly above the horizon line */}
         <div 
           ref={bootTextRef} 
-          className="absolute bottom-[52vh] left-6 md:left-8 flex flex-col justify-end text-[13px] md:text-[15px] text-[#FFFCF5]/70 tracking-wide font-mono space-y-2"
+          className="absolute bottom-[52vh] left-6 md:left-8 flex flex-col justify-end text-[16px] md:text-[15px] text-[#FFFCF5]/70 tracking-wide font-mono space-y-2"
         >
           <p ref={termLine1} className="opacity-0">&gt; initializing nodes...</p>
           <p ref={termLine2} className="opacity-0">&gt; defining constraints...</p>
-          <p ref={termLine3} className="opacity-0 text-[#E1FF00]">&gt; BUILT ON CERTAINTY.</p>
+          <p ref={termLine3} className="opacity-0 text-[#E1FF00]">&gt; system initializing...</p>
         </div>
       </div>
 
@@ -390,7 +403,7 @@ export default function App() {
           {/* Logo */}
           <div className="col-span-4 md:col-span-6 flex justify-start">
             <div className="font-bold text-[16px] tracking-tighter leading-none h-6">
-              <img src={primaryLogo} alt="The Nuanced Studio logo" className="h-full w-auto object-contain" />
+              <img src={primaryLogo2} alt="The Nuanced Studio logo" className="h-full w-auto object-contain" />
             </div>
           </div>
           
@@ -440,7 +453,7 @@ export default function App() {
             </h1>
             <div className="text-[#FFFCF5]/70 text-[16px] leading-relaxed max-w-md">
               <p>Built from the first principles to operate where conditions</p>
-              <p>are complex, constrined and continually changing</p>
+              <p>are complex, constrained and continually changing</p>
             </div>
           </div>
           
