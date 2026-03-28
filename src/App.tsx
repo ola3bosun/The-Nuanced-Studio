@@ -216,7 +216,7 @@ export default function App() {
   //  BOOT SEQUENCE REFS 
   const bootScreenRef = useRef<HTMLDivElement>(null);
   const bootLogoPathRef = useRef<SVGPathElement>(null);
-  const bootLineRef = useRef<HTMLDivElement>(null);
+  const bootLineRef = useRef<SVGLineElement>(null);
   const bootTextRef = useRef<HTMLDivElement>(null);
   const termLine1 = useRef<HTMLParagraphElement>(null);
   const termLine2 = useRef<HTMLParagraphElement>(null);
