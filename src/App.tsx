@@ -6,6 +6,7 @@ import canvasSketch from 'canvas-sketch';
 import primaryLogo2 from './assets/primaryLogo2.png'
 import GlowButton from './GlowButton';
 import CustomCursor from './CustomCursor';
+import SystemDock from './SystemDock';
 
 gsap.registerPlugin(Draggable);
 
@@ -131,11 +132,13 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
     if (!windowRef.current || !dragHandleRef.current) return;
 
     let ctx = gsap.context(() => {
+      // 1. Entrance: Shoot UP from the dock with a snappy back.out ease
       gsap.fromTo(windowRef.current, 
-        { opacity: 0, scale: 0.95, y: 15 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "power3.out" }
+        { opacity: 0, scale: 0.5, y: 400 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "back.out(1.2)" }
       );
 
+      // 2. Init Draggable
       Draggable.create(windowRef.current, {
         type: "x,y",
         trigger: dragHandleRef.current,
@@ -147,6 +150,25 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
 
     return () => ctx.revert(); 
   }, [id]); 
+
+  // --- THE EXIT ANIMATION ---
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Kill the draggable instance so the user can't grab it while it's exiting
+    const draggables = Draggable.get(windowRef.current);
+    if (draggables) draggables.kill();
+
+    // Slide DOWN into the dock, then unmount
+    gsap.to(windowRef.current, {
+      opacity: 0,
+      scale: 0.5,
+      y: 400,
+      duration: 0.4,
+      ease: "back.in(1.2)", // The reverse of back.out gives it a physical "suck in" effect
+      onComplete: () => onClose(id),
+    });
+  };
 
   return (
     <div
@@ -163,9 +185,10 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
         <span className="text-[#FFFCF5]/80 text-[10px] tracking-[0.2em] uppercase font-medium">
           {title}
         </span>
+        {/* Wire the close button to our new handleClose function */}
         <button 
           onMouseDown={(e) => e.stopPropagation()} 
-          onClick={(e) => { e.stopPropagation(); onClose(id); }}
+          onClick={handleClose}
           className="relative w-3 h-3 group cursor-pointer flex items-center justify-center"
         >
           <span className="absolute w-full h-[1px] bg-gray-500 group-hover:bg-[#E1FF00] transition-colors duration-300 rotate-45"></span>
@@ -243,7 +266,7 @@ export default function App() {
       // Phase 3: Terminal Typing
       tl.to(termLine1.current, { opacity: 1, duration: 0.25 }, "+=0.2");
       tl.to(termLine2.current, { opacity: 1, duration: 0.15 }, "+=0.4");
-      tl.to(termLine3.current, { opacity: 1, duration: 1.5 }, "+=0.4");
+      tl.to(termLine3.current, { opacity: 1, duration: 1 }, "+=0.4");
 
       // Phase 4: The Snap
       tl.to(bootTextRef.current, { y: "-=40", opacity: 0, duration: 0.6, ease: "power3.in" }, "+=0.6");
@@ -410,9 +433,9 @@ export default function App() {
           {/* Links */}
           <div className="hidden md:flex col-span-4 md:col-start-7 md:col-span-4 justify-start items-center text-[12px] tracking-[0.15em] uppercase text-[#FFFCF5]/60 pt-2">
             <NavLink title="SOLUTIONS +" onClick={() => openWindow('solutions')} />
-            <span className="mx-2 text-[#FFFCF5]/40">,</span>
+            <span className="mx-2 text-[#FFFCF5]/40">//</span>
             <NavLink title="PLATFORM" onClick={() => openWindow('platform')} />
-            <span className="mx-2 text-[#FFFCF5]/40">,</span>
+            <span className="mx-2 text-[#FFFCF5]/40">//</span>
             <NavLink title="CONTACT" onClick={() => openWindow('contact')} />
           </div>
           
@@ -477,6 +500,24 @@ export default function App() {
           onFocus={focusWindow}
         />
       ))}
+
+      {/* RENDER ACTIVE WINDOWS */}
+      {openWindows.map((win) => (
+        <WindowPopup
+          key={win.id}
+          {...win}
+          onClose={closeWindow}
+          onFocus={focusWindow}
+        />
+      ))}
+
+      {/* THE TACTICAL SYSTEM DOCK */}
+      <SystemDock 
+        availablePages={Object.values(pages)} 
+        openWindows={openWindows} 
+        openWindow={(id) => openWindow(id as PageKey)} 
+      />
+
     </div>
   );
 }

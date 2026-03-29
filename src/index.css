@@ -19,13 +19,11 @@
   font-display: swap;
 }
 
-/* 2. Inject it into Tailwind v4's Theme */
+
 @theme {
-  /* This overrides the default 'font-sans' utility to use Clash Grotesk first */
   --font-sans: "Clash Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* 3. Global Resets */
 body {
   background-color: #010101;
   color: #FFFCF5;
