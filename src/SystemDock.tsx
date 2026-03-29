@@ -80,7 +80,7 @@ export default function SystemDock({ availablePages, openWindows, openWindow }: 
 
       {/* RIGHT: Live Clock & Status */}
       <div className="flex items-center gap-6 h-full border-l border-[#FFFCF5]/10 pl-6">
-        <span className="hidden sm:inline-block text-[#E1FF00]" data-battery-status>{batteryStatus}</span>
+        <span className="hidden sm:inline-block text-[#FFFCF5]/50" data-battery-status>{batteryStatus}</span>
         <span>{time}</span>
       </div>
       
