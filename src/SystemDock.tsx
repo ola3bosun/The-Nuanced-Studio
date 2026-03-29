@@ -55,7 +55,7 @@ export default function SystemDock({ availablePages, openWindows, openWindow }: 
       
       {/* LEFT: System Label & Permanent Tabs */}
       <div className="flex items-center h-full">
-        <span className="text-[#E1FF00] mr-6 hidden md:inline-block">TNS_OS v1.3_TBS</span>
+        <span className="text-[#E1FF00] mr-6 hidden md:inline-block">TNS_OS v1.35.DEV_TBS</span>
         
         <div className="flex h-full">
           {availablePages.map(page => {
