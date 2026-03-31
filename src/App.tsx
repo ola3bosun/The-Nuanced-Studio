@@ -131,7 +131,7 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
     onFocusRef.current = onFocus;
   }, [onFocus]);
 
-  // --- ENTRANCE ANIMATION ---
+  //  ENTRANCE ANIMATION 
   useLayoutEffect(() => {
     if (!windowRef.current || !dragHandleRef.current) return;
 
@@ -154,7 +154,7 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
     return () => ctx.revert(); 
   }, [id]); 
 
-  // --- DYNAMIC SLIDE (THE PUSH/PULL ENGINE) ---
+  //  DYNAMIC SLIDE (THE PUSH/PULL ENGINE) 
   useLayoutEffect(() => {
     const prevTotal = prevTotalRef.current;
     
@@ -170,7 +170,7 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
     prevTotalRef.current = totalWindows;
   }, [totalWindows, index]);
 
-  // --- EXIT ANIMATION ---
+  //  EXIT ANIMATION 
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -299,7 +299,7 @@ export default function App() {
     return () => { if (manager) manager.unload(); };
   }, []);
 
-  const pages: Record<PageKey, Omit<WindowProps, 'onClose' | 'onFocus'>> = {
+  const pages: Record<PageKey, Omit<WindowProps, 'onClose' | 'onFocus' | 'index' | 'totalWindows'>> = {
     solutions: { 
       id: 'solutions', title: 'Solutions +', 
       content: 'Strategic solutions designed from first principles to operate in complex, constrained, and continually changing conditions.',
@@ -396,7 +396,7 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Phase 3: The Terminal Text positioned exactly above the horizon line */}
+        {/* Phase 3: The Terminal Text positioned above the horizontal line */}
         <div 
           ref={bootTextRef} 
           className="absolute bottom-[52vh] left-6 md:left-8 flex flex-col justify-end text-[16px] md:text-[15px] text-[#FFFCF5]/70 tracking-wide font-mono space-y-2"

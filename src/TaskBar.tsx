@@ -50,7 +50,7 @@ export default function Taskbar({ openWindow, openWindows }: TaskbarProps) {
             return <div key="divider" className="w-[1px] h-10 bg-[#FFFCF5]/15 mx-1 mb-1" />;
           }
 
-          // --- MACOS MAGNIFICATION MATH ---
+          //MACOS MAGNIFICATION MATH
           let scale = 1;
           let yOffset = 0;
           
@@ -107,7 +107,7 @@ export default function Taskbar({ openWindow, openWindows }: TaskbarProps) {
                 )}
               </button>
 
-              {/* The macOS "Active App" Indicator Dot */}
+              {/* The Indicator Dot */}
               <div 
                 className={`absolute -bottom-2 w-1 h-1 rounded-full transition-all duration-300
                   ${isOpen ? 'bg-[#E1FF00] opacity-100 scale-100' : 'bg-transparent opacity-0 scale-0'}

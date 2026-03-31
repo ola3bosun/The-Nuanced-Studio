@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 
-// Minimal interfaces to keep the component decoupled
 interface DockWindow {
   id: string;
   title: string;
@@ -13,8 +12,6 @@ interface SystemDockProps {
   openWindow: (id: string) => void;
 }
 
-// --- NEW: ISOLATED DOCK TAB COMPONENT ---
-// This handles its own GSAP mount/unmount push/pull lifecycle
 const DockTab = ({ page, isOpen, openWindow }: { page: DockWindow, isOpen: boolean, openWindow: (id: string) => void }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -23,29 +20,21 @@ const DockTab = ({ page, isOpen, openWindow }: { page: DockWindow, isOpen: boole
   useLayoutEffect(() => {
     if (!containerRef.current || !buttonRef.current) return;
 
-    // Measure the physical size of the button before it's constrained
     const targetWidth = buttonRef.current.scrollWidth;
 
     let ctx = gsap.context(() => {
       if (isOpen) {
-        // --- ENTRANCE ANIMATION ---
-        // 1. Expand the container to smoothly push existing tabs to the right
         gsap.to(containerRef.current, { width: targetWidth, duration: 0.5, ease: "power3.out" });
-        // 2. Slide and fade the button in from the right
         gsap.fromTo(buttonRef.current, 
           { x: 20, opacity: 0 }, 
           { x: 0, opacity: 1, duration: 0.5, ease: "power3.out", delay: 0.1 }
         );
       } else {
         if (isFirstRender.current) {
-          // If it's the very first load and it's closed, set it to 0 instantly without animating
           gsap.set(containerRef.current, { width: 0 });
           gsap.set(buttonRef.current, { opacity: 0, x: 20 });
         } else {
-          // --- EXIT ANIMATION ---
-          // 1. Slide and fade the button out to the right
           gsap.to(buttonRef.current, { x: 20, opacity: 0, duration: 0.3, ease: "power3.in" });
-          // 2. Collapse the container to smoothly pull remaining tabs to the left
           gsap.to(containerRef.current, { width: 0, duration: 0.4, ease: "power3.inOut", delay: 0.1 });
         }
       }
@@ -57,7 +46,6 @@ const DockTab = ({ page, isOpen, openWindow }: { page: DockWindow, isOpen: boole
 
   return (
     <div ref={containerRef} className="overflow-hidden h-full flex items-center">
-      {/* flex-shrink-0 ensures the button text doesn't squash while the wrapper is animating */}
       <button
         ref={buttonRef}
         onClick={() => openWindow(page.id)}
@@ -75,7 +63,6 @@ export default function SystemDock({ availablePages, openWindows, openWindow }: 
   const [time, setTime] = useState("");
   const [batteryStatus, setBatteryStatus] = useState("SYS: NOMINAL");
 
-  // Live 24-hour clock
   useEffect(() => {
     const updateTime = () => setTime(new Date().toLocaleTimeString('en-US', { hour12: false }));
     updateTime();
@@ -83,7 +70,6 @@ export default function SystemDock({ availablePages, openWindows, openWindow }: 
     return () => clearInterval(timer);
   }, []);
 
-  // Battery status 
   useEffect(() => {
     const nav = navigator as any;
     
@@ -112,7 +98,6 @@ export default function SystemDock({ availablePages, openWindows, openWindow }: 
   return (
     <div className="fixed top-0 left-0 w-full h-8 bg-[#010101]/80 backdrop-blur-md border-b border-[#FFFCF5]/10 flex items-center justify-between px-6 z-[9000] font-mono text-[10px] uppercase text-[#FFFCF5]/50 tracking-[0.15em] select-none">
       
-      {/* LEFT: System Label & Active Running Processes */}
       <div className="flex items-center h-full">
         <span className="text-[#E1FF00] mr-6 hidden md:inline-block">TNS_OS v1.35.DEV_TBS</span>
         
@@ -131,7 +116,6 @@ export default function SystemDock({ availablePages, openWindows, openWindow }: 
         </div>
       </div>
 
-      {/* RIGHT: Live Clock & Status */}
       <div className="flex items-center gap-6 h-full border-l border-[#FFFCF5]/10 pl-6">
         <span className="hidden sm:inline-block text-[#FFFCF5]/50" data-battery-status>{batteryStatus}</span>
         <span>{time}</span>
