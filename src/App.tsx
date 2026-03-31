@@ -3,10 +3,10 @@ import gsap from 'gsap';
 import { Draggable } from 'gsap/all';
 // @ts-ignore
 import canvasSketch from 'canvas-sketch';
-import primaryLogo2 from './assets/primaryLogo2.png'
-import GlowButton from './GlowButton';
 import CustomCursor from './CustomCursor';
 import SystemDock from './SystemDock';
+// import Navbar from './Navbar';
+import Taskbar from './TaskBar';
 
 gsap.registerPlugin(Draggable);
 
@@ -114,31 +114,34 @@ interface WindowProps {
   title: string;
   content: string;
   zIndex?: number;
+  index: number;         // NEW: Tracks its position in the array
+  totalWindows: number;  // NEW: Tracks how many windows are open globally
   onClose: (id: string) => void;
   onFocus: (id: string) => void;
   defaultPosition: { top: string; left: string };
 }
 
-const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosition }: WindowProps) => {
+const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose, onFocus, defaultPosition }: WindowProps) => {
   const windowRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
+  const prevTotalRef = useRef(totalWindows);
 
   const onFocusRef = useRef(onFocus);
   useLayoutEffect(() => {
     onFocusRef.current = onFocus;
   }, [onFocus]);
 
+  // --- ENTRANCE ANIMATION ---
   useLayoutEffect(() => {
     if (!windowRef.current || !dragHandleRef.current) return;
 
     let ctx = gsap.context(() => {
-      // 1. Entrance: Shoot UP from the dock with a snappy back.out ease
+      // Slides in from the right (x: 40 to x: 0)
       gsap.fromTo(windowRef.current, 
-        { opacity: 0, scale: 0.5, y: 400 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "back.out(1.2)" }
+        { opacity: 0, scale: 0.98, x: 40 },
+        { opacity: 1, scale: 1, x: 0, duration: 0.6, ease: "power3.out" }
       );
 
-      // 2. Init Draggable
       Draggable.create(windowRef.current, {
         type: "x,y",
         trigger: dragHandleRef.current,
@@ -151,21 +154,36 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
     return () => ctx.revert(); 
   }, [id]); 
 
-  // --- THE EXIT ANIMATION ---
+  // --- DYNAMIC SLIDE (THE PUSH/PULL ENGINE) ---
+  useLayoutEffect(() => {
+    const prevTotal = prevTotalRef.current;
+    
+    // If a NEW window opened, and this is an OLDER window, push it left to make room
+    if (totalWindows > prevTotal && index < totalWindows - 1) {
+      gsap.to(windowRef.current, { x: "-=40", duration: 0.6, ease: "power3.out" });
+    } 
+    // If a window CLOSED, pull the remaining windows back to the right
+    else if (totalWindows < prevTotal) {
+      gsap.to(windowRef.current, { x: "+=40", duration: 0.6, ease: "power3.out" });
+    }
+    
+    prevTotalRef.current = totalWindows;
+  }, [totalWindows, index]);
+
+  // --- EXIT ANIMATION ---
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // Kill the draggable instance so the user can't grab it while it's exiting
     const draggables = Draggable.get(windowRef.current);
     if (draggables) draggables.kill();
 
-    // Slide DOWN into the dock, then unmount
+    // Fade out and slide relative to its right ("+=40") so it doesn't teleport if dragged
     gsap.to(windowRef.current, {
       opacity: 0,
-      scale: 0.5,
-      y: 400,
-      duration: 0.4,
-      ease: "back.in(1.2)", // The reverse of back.out gives it a physical "suck in" effect
+      scale: 0.98,
+      x: "+=40",
+      duration: 0.3,
+      ease: "power3.in",
       onComplete: () => onClose(id),
     });
   };
@@ -185,7 +203,6 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
         <span className="text-[#FFFCF5]/80 text-[10px] tracking-[0.2em] uppercase font-medium">
           {title}
         </span>
-        {/* Wire the close button to our new handleClose function */}
         <button 
           onMouseDown={(e) => e.stopPropagation()} 
           onClick={handleClose}
@@ -202,34 +219,8 @@ const WindowPopup = ({ id, title, content, zIndex, onClose, onFocus, defaultPosi
   );
 };
 
-//  NAV LINK COMPONENT 
-const NavLink = ({ title, onClick }: { title: string, onClick: () => void }) => {
-  return (
-    <button
-      data-cursor="link"
-      onClick={onClick}
-      className="relative group text-[#FFFCF5]/60 hover:text-[#E1FF00] transition-colors duration-300 py-1"
-    >
-      <span className="relative z-10">{title}</span>
-      <svg
-        className="absolute left-0 -bottom-1.5 w-full h-[8px] pointer-events-none opacity-80"
-        viewBox="0 0 100 10"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M 2 7 Q 25 2 50 6 T 98 4"
-          fill="transparent"
-          vectorEffect="non-scaling-stroke"
-          pathLength="100"
-          className="stroke-current stroke-[2px] stroke-linecap-round [stroke-dasharray:100] [stroke-dashoffset:100] group-hover:[stroke-dashoffset:0] transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
-        />
-      </svg>
-    </button>
-  );
-};
-
 // THE MAIN APP
-type PageKey = 'solutions' | 'platform' | 'contact';
+export type PageKey = 'solutions' | 'platform' | 'contact';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -261,7 +252,6 @@ export default function App() {
 
       // Phase 2: Draw Horizon Line 
       tl.to(bootLineRef.current, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut" }, 2.0);
-      // tl.to(bootLineRef.current, { scaleX: 1, duration: 1.2, ease: "back.out" }, "<");
 
       // Phase 3: Terminal Typing
       tl.to(termLine1.current, { opacity: 1, duration: 0.25 }, "+=0.2");
@@ -322,7 +312,7 @@ export default function App() {
     },
     contact: { 
       id: 'contact', title: 'Contact', 
-      content: 'Secure a partnership. Request a demo to visualize our capabilities. Email: thenuancedstudio@gmail.com',
+      content: 'Secure a partnership. Request a demo to visualize our capabilities. Email: hello@tns.com',
       defaultPosition: { top: '40%', left: '30%' }
     }
   };
@@ -337,8 +327,8 @@ export default function App() {
     });
   };
 
-  const openWindow = (pageKey: PageKey) => {
-    const page = pages[pageKey];
+  const openWindow = (pageKey: string) => {
+    const page = pages[pageKey as PageKey];
     
     setOpenWindows((prevWins) => {
       if (prevWins.find((w) => w.id === page.id)) {
@@ -361,7 +351,7 @@ export default function App() {
 
       <CustomCursor />
 
-      {/*  THE PERMANENT HORIZON LINE */}
+      {/* THE PERMANENT HORIZON LINE */}
       <div className="absolute top-[50vh] left-0 w-full h-[1px] z-[15] pointer-events-none">
         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
           <line
@@ -379,7 +369,7 @@ export default function App() {
         </svg>
       </div>
       
-      {/*  THE BOOT SCREEN OVERLAY  */}
+      {/* THE BOOT SCREEN OVERLAY  */}
       <div ref={bootScreenRef} className="fixed inset-0 z-50 bg-[#010101] pointer-events-none flex flex-col">
         
         {/* Exact structural clone of the padding/grid to ensure pixel-perfect SVG alignment */}
@@ -420,42 +410,8 @@ export default function App() {
       {/* TOP HALF (50vh)  */}
       <div ref={heroContentRef} className="h-[50vh] flex flex-col relative z-10 px-6 md:px-8 pt-6 opacity-0">
         
-        {/* NAVBAR ON A 12-COLUMN GRID */}
-        <nav className="grid grid-cols-12 gap-4 w-full items-center">
-          
-          {/* Logo */}
-          <div className="col-span-4 md:col-span-6 flex justify-start">
-            <div className="font-bold text-[16px] tracking-tighter leading-none h-6">
-              <img src={primaryLogo2} alt="The Nuanced Studio logo" className="h-full w-auto object-contain" />
-            </div>
-          </div>
-          
-          {/* Links */}
-          <div className="hidden md:flex col-span-4 md:col-start-7 md:col-span-4 justify-start items-center text-[12px] tracking-[0.15em] uppercase text-[#FFFCF5]/60 pt-2">
-            <NavLink title="SOLUTIONS +" onClick={() => openWindow('solutions')} />
-            <span className="mx-2 text-[#FFFCF5]/40">//</span>
-            <NavLink title="PLATFORM" onClick={() => openWindow('platform')} />
-            <span className="mx-2 text-[#FFFCF5]/40">//</span>
-            <NavLink title="CONTACT" onClick={() => openWindow('contact')} />
-          </div>
-          
-          {/* CTA Button */}
-          <div className="col-span-8 md:col-start-11 md:col-span-2 flex justify-end">
-            <GlowButton 
-            edgeSensitivity={4}
-            glowColor="40 80 80"
-            backgroundColor="#010101"
-            borderRadius={5}
-            glowRadius={10}
-            glowIntensity={0.1}
-            coneSpread={5}
-            animated
-            colors={['#E1FF00', '#F4FF81', '#C6FF00']}
-            text="REQUEST A DEMO" 
-            onClick={() => openWindow('contact')} />
-          </div>
-
-        </nav>
+        {/* Render Extracted Navbar Component */}
+        {/* <Navbar openWindow={openWindow} /> */}
 
         {/* HERO COPY (12-Column Grid) */}
         <div className="grid grid-cols-12 gap-4 flex-1 items-center pb-12">
@@ -492,30 +448,26 @@ export default function App() {
       </div>
 
       {/* RENDER ACTIVE WINDOWS */}
-      {openWindows.map((win) => (
+    {openWindows.map((win, index) => (
         <WindowPopup
           key={win.id}
           {...win}
+          index={index}
+          totalWindows={openWindows.length}
           onClose={closeWindow}
           onFocus={focusWindow}
         />
       ))}
 
-      {/* RENDER ACTIVE WINDOWS */}
-      {openWindows.map((win) => (
-        <WindowPopup
-          key={win.id}
-          {...win}
-          onClose={closeWindow}
-          onFocus={focusWindow}
-        />
-      ))}
-
-      {/* THE TACTICAL SYSTEM DOCK */}
+      {/* THE TACTICAL SYSTEM DOCK (Now at top of viewport) */}
       <SystemDock 
         availablePages={Object.values(pages)} 
         openWindows={openWindows} 
-        openWindow={(id) => openWindow(id as PageKey)} 
+        openWindow={openWindow} 
+      />
+      <Taskbar 
+      openWindow={openWindow} 
+      openWindows={openWindows}
       />
 
     </div>
