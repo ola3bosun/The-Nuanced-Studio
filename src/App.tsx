@@ -374,7 +374,7 @@ export default function App() {
       <div ref={bootScreenRef} className="fixed inset-0 z-50 bg-[#010101] pointer-events-none flex flex-col">
         
         {/* Exact structural clone of the padding/grid to ensure pixel-perfect SVG alignment */}
-        <div className="h-[50vh] flex flex-col relative px-6 md:px-8 pt-6">
+        <div className="h-[50vh] flex flex-col relative px-6 md:px-8 pt-12">
           <nav className="grid grid-cols-12 gap-4 w-full items-center">
             <div className="col-span-4 md:col-span-6 flex justify-start">
               {/* SVG wrapped in the identical h-6 container to match the real PNG */}
@@ -386,7 +386,7 @@ export default function App() {
                     d="M 2 2 Q 65 35 128 2 L 128 98 Q 65 65 2 98 Z"
                     fill="transparent"
                     stroke="#FFFCF5"
-                    strokeWidth="8"
+                    strokeWidth="5"
                     strokeLinejoin="round"
                     pathLength="100"
                     className="[stroke-dasharray:100] [stroke-dashoffset:100]"
