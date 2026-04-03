@@ -1,10 +1,9 @@
 @import "tailwindcss";
 
-/* 1. Define the Custom Font Family */
 @font-face {
   font-family: 'Clash Grotesk';
-  src: url('./assets/fonts/ClashGrotesk-Regular.woff2') format('woff2'),
-       url('./assets/fonts/ClashGrotesk-Regular.woff') format('woff');
+  src: url('fonts/ClashGrotesk-Regular.woff2') format('woff2'),
+       url('fonts/ClashGrotesk-Regular.woff') format('woff');
   font-weight: 400; /* Regular */
   font-style: normal;
   font-display: swap;
@@ -12,8 +11,8 @@
 
 @font-face {
   font-family: 'Clash Grotesk';
-  src: url('./assets/fonts/ClashGrotesk-Semibold.woff2') format('woff2'),
-       url('./assets/fonts/ClashGrotesk-Semibold.woff') format('woff');
+  src: url('fonts/ClashGrotesk-Semibold.woff2') format('woff2'),
+       url('fonts/ClashGrotesk-Semibold.woff') format('woff');
   font-weight: 600; /* Semibold */
   font-style: normal;
   font-display: swap;
@@ -28,7 +27,6 @@ body {
   background-color: #010101;
   color: #FFFCF5;
   overflow: hidden;
-  /* Apply the font globally */
   font-family: var(--font-sans); 
 }
 

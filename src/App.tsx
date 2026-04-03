@@ -279,9 +279,10 @@ export default function App() {
 
   useEffect(() => {
     const originalTitle = document.title;
-    const scrollMessage = "Come back?";
+    const scrollMessage = "Hibernating...";
+    const bootMessage = "Booting...";
     const handleBlur = () => { document.title = scrollMessage; };
-    const handleFocus = () => { document.title = originalTitle; };
+    const handleFocus = () => { document.title = bootMessage; setTimeout(() => { document.title = originalTitle; }, 2000) };
     window.addEventListener('blur', handleBlur);
     window.addEventListener('focus', handleFocus);
     return () => {
@@ -303,17 +304,17 @@ export default function App() {
     solutions: { 
       id: 'solutions', title: 'Solutions +', 
       content: 'Strategic solutions designed from first principles to operate in complex, constrained, and continually changing conditions.',
-      defaultPosition: { top: '20%', left: '10%' }
+      defaultPosition: { top: '20%', left: '17.5%' }
     },
     platform: { 
       id: 'platform', title: 'Platform', 
       content: 'The proprietary backbone connecting you to your goals. Built on certainty.',
-      defaultPosition: { top: '30%', left: '20%' }
+      defaultPosition: { top: '40%', left: '25%' }
     },
     contact: { 
       id: 'contact', title: 'Contact', 
       content: 'Secure a partnership. Request a demo to visualize our capabilities. Email: hello@tns.com',
-      defaultPosition: { top: '40%', left: '30%' }
+      defaultPosition: { top: '55%', left: '30%' }
     }
   };
 
