@@ -7,7 +7,7 @@ interface TaskbarProps {
 }
 
 // SVG Icons for the dock
-const PlatformIcon = () => (
+const WorksIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" rx="1"></rect>
     <rect x="14" y="3" width="7" height="7" rx="1"></rect>
@@ -34,7 +34,7 @@ export default function Taskbar({ openWindow, openWindows }: TaskbarProps) {
 
   const dockItems = [
     { id: 'solutions', label: 'Solutions +', isImage: true },
-    { id: 'platform', label: 'Platform', icon: <PlatformIcon /> },
+    { id: 'works', label: 'Works +', icon: <WorksIcon /> },
     { id: 'contact', label: 'Contact', icon: <ContactIcon /> },
     { id: 'divider', isDivider: true },
     { id: 'demo', label: 'Request Demo', icon: <LightningIcon />, isCta: true },

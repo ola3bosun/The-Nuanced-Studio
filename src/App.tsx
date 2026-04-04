@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react';
 import gsap from 'gsap';
 import { Draggable } from 'gsap/all';
 // @ts-ignore
@@ -7,7 +7,9 @@ import CustomCursor from './CustomCursor';
 import SystemDock from './SystemDock';
 // import Navbar from './Navbar';
 import Taskbar from './TaskBar';
-// import SolutionsContent from './SolutionsContent';
+import SolutionsContent from './SolutionsContent';
+import WorksContent from './WorksContent';
+import ContactContent from './ContactContent';
 
 gsap.registerPlugin(Draggable);
 
@@ -113,7 +115,7 @@ const sketch = ({ width, height }: { width: number; height: number }) => {
 interface WindowProps {
   id: string;
   title: string;
-  content: string;
+  content: ReactNode;
   zIndex?: number;
   index: number;         // NEW: Tracks its position in the array
   totalWindows: number;  // NEW: Tracks how many windows are open globally
@@ -146,8 +148,8 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
       Draggable.create(windowRef.current, {
         type: "x,y",
         trigger: dragHandleRef.current,
-        bounds: "body", 
-        edgeResistance: 0.65,
+        bounds: "body",
+        edgeResistance: 0.85,
         onPress: () => onFocusRef.current(id),
       });
     });
@@ -189,12 +191,21 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
     });
   };
 
+  // start responsivness from here
+
+  // // Detect if on a mobile device (roughly < 768px wide)
+  // const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  // // If mobile, ignore the custom top/left props and center it.
+  // const mobilePosition = { top: '5%', left: '5%' };
+  // const appliedPosition = isMobile ? mobilePosition : defaultPosition;
+
   return (
     <div
       ref={windowRef}
       onMouseDown={() => onFocus(id)}
       style={{ zIndex, position: 'absolute', top: defaultPosition.top, left: defaultPosition.left }}
-      className="w-full max-w-[400px] bg-[#010101]/90 backdrop-blur-xl border border-[#FFFCF5]/10 shadow-2xl rounded-sm overflow-hidden flex flex-col"
+      className="w-auto max-w-[95vw] max-h-[85vh] bg-[#010101]/90 backdrop-blur-xl border border-[#FFFCF5]/10 shadow-2xl rounded-sm overflow-hidden flex flex-col"
     >
       <div 
         data-cursor="drag"
@@ -221,17 +232,17 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
 };
 
 // THE MAIN APP
-export type PageKey = 'solutions' | 'platform' | 'contact';
+export type PageKey = 'solutions' | 'works' | 'contact';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [openWindows, setOpenWindows] = useState<(WindowProps & { zIndex: number })[]>([]);
   const [highestZ, setHighestZ] = useState(10);
 
-  // NATIVE AUDIO ENGINE - i avoided npm i use-sound because of the 300+kb dependency size and the fact that we only need 2 sounds with basic playback functionality. This is a very lightweight custom solution... i think
+  // NATIVE AUDIO ENGINE - i avoided npm i use-sound, to be safe... i think
   const playSystemSound = (type: 'open' | 'close') => {
     const sound = new Audio(`/sounds/${type}.m4a`);
-    sound.volume = 0.6;
+    sound.volume = 0.5;
     sound.play().catch(() => {});
   };
 
@@ -309,20 +320,20 @@ export default function App() {
   }, []);
 
   const pages: Record<PageKey, Omit<WindowProps, 'onClose' | 'onFocus' | 'index' | 'totalWindows'>> = {
-    solutions: { 
-      id: 'solutions', title: 'Solutions +', 
-      content: 'Sophisticated interfaces. Bulletproof architectures. Scalable systems. We build the backbone for your boldest ambitions.',
-      defaultPosition: { top: '20%', left: '17.5%' }
+    solutions: {
+      id: 'solutions', title: 'Solutions +',
+      content: <SolutionsContent />,
+      defaultPosition: { top: '5%', left: '5%' }
     },
-    platform: { 
-      id: 'platform', title: 'Platform', 
-      content: 'The proprietary backbone connecting you to your goals. Built on certainty.',
+    works: {
+      id: 'works', title: 'Works +',
+      content: <WorksContent />,
       defaultPosition: { top: '40%', left: '25%' }
     },
-    contact: { 
-      id: 'contact', title: 'Contact', 
-      content: 'Secure a partnership. Request a demo to visualize our capabilities. Email: hello@tns.com',
-      defaultPosition: { top: '55%', left: '30%' }
+    contact: {
+      id: 'contact', title: 'Contact',
+      content: <ContactContent />,
+      defaultPosition: { top: '10%', left: '40%' }
     }
   };
 

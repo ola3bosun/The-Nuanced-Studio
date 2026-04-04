@@ -12,10 +12,10 @@ export default function SolutionsContent() {
         {
           y: 0,
           opacity: 1,
-          duration: 0.6,
+          duration: 0.5,
           stagger: 0.1,
-          ease: "power3.out",
-          delay: 0.1,
+          ease: "power3.in",
+          delay: 0.5,
         },
       );
     }, containerRef);
@@ -30,7 +30,7 @@ export default function SolutionsContent() {
     >
       {/* Window Header */}
       <div className="bento-item mb-8 border-b border-[#FFFCF5]/20 pb-4">
-        <h2 className="text-3xl font-sans font-semibold tracking-tight uppercase">
+        <h2 className="text-3xl font-Clash-Grotesk-semibold  tracking-tight uppercase">
           Core Solutions
         </h2>
         <p className="font-mono text-sm text-[#FFFCF5]/50 mt-2">
@@ -41,15 +41,15 @@ export default function SolutionsContent() {
       {/* The Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
         {/* Module 01: UX/UI Design */}
-        <div className="bento-item group border border-[#FFFCF5]/20 p-5 hover:bg-[#FFFCF5]/5 hover:border-[#FFFCF5]/40 transition-all duration-300 flex flex-col justify-between">
+        <div className="bento-item group border border-[#FFFCF5]/20 p-5 transition-all duration-300 flex flex-col justify-between">
           <div className="font-mono text-xs text-[#e1ff00] mb-4">
             MOD.01 // INTERFACE
           </div>
           <div>
-            <h3 className="text-xl font-sans font-semibold mb-2">
+            <h3 className="text-xl font-Clash-Grotesk-semibold  mb-2">
               UX & Web Design
             </h3>
-            <p className="text-sm text-[#FFFCF5]/60 leading-relaxed font-sans font-normal">
+            <p className="text-sm text-[#FFFCF5]/60 leading-relaxed font-Clash-Grotesk-semibold font-normal">
               First-principles interface architecture. High-fidelity,
               frictionless user experiences built for complex conditions.
             </p>
@@ -57,15 +57,15 @@ export default function SolutionsContent() {
         </div>
 
         {/* Module 02: Web Development */}
-        <div className="bento-item group border border-[#FFFCF5]/20 p-5 hover:bg-[#FFFCF5]/5 hover:border-[#FFFCF5]/40 transition-all duration-300 flex flex-col justify-between">
+        <div className="bento-item group border border-[#FFFCF5]/20 p-5 transition-all duration-300 flex flex-col justify-between">
           <div className="font-mono text-xs text-[#e1ff00] mb-4">
             MOD.02 // ENGINEERING
           </div>
           <div>
-            <h3 className="text-xl font-sans font-semibold mb-2">
+            <h3 className="text-xl font-Clash-Grotesk-semibold  mb-2">
               Web Development
             </h3>
-            <p className="text-sm text-[#FFFCF5]/60 leading-relaxed font-sans font-normal">
+            <p className="text-sm text-[#FFFCF5]/60 leading-relaxed font-Clash-Grotesk-semibold font-normal">
               Performant, scalable frontend systems. Clean code execution with
               zero-latency operational thresholds.
             </p>
@@ -73,15 +73,15 @@ export default function SolutionsContent() {
         </div>
 
         {/* Module 03: Data Analysis */}
-        <div className="bento-item group border border-[#FFFCF5]/20 p-5 hover:bg-[#FFFCF5]/5 hover:border-[#FFFCF5]/40 transition-all duration-300 flex flex-col justify-between">
+        <div className="bento-item group border border-[#FFFCF5]/20 p-5 transition-all duration-300 flex flex-col justify-between">
           <div className="font-mono text-xs text-[#e1ff00] mb-4">
             MOD.03 // TELEMETRY
           </div>
           <div>
-            <h3 className="text-xl font-sans font-semibold mb-2">
+            <h3 className="text-xl font-Clash-Grotesk-semibold  mb-2">
               Data Analysis
             </h3>
-            <p className="text-sm text-[#FFFCF5]/60 leading-relaxed font-sans font-normal">
+            <p className="text-sm text-[#FFFCF5]/60 leading-relaxed font-Clash-Grotesk-semibold font-normal">
               Raw data synthesis and pattern recognition. Translating chaotic
               metrics into actionable insights.
             </p>
@@ -89,15 +89,15 @@ export default function SolutionsContent() {
         </div>
 
         {/* Module 04: Video Editing */}
-        <div className="bento-item group border border-[#FFFCF5]/20 p-5 hover:bg-[#FFFCF5]/5 hover:border-[#FFFCF5]/40 transition-all duration-300 flex flex-col justify-between">
+        <div className="bento-item group border border-[#FFFCF5]/20 p-5 transition-all duration-300 flex flex-col justify-between">
           <div className="font-mono text-xs text-[#e1ff00] mb-4">
             MOD.04 // MEDIA
           </div>
           <div>
-            <h3 className="text-xl font-sans font-semibold mb-2">
+            <h3 className="text-xl font-Clash-Grotesk-semibold  mb-2">
               Video Editing
             </h3>
-            <p className="text-sm text-[#FFFCF5]/60 leading-relaxed font-sans font-normal">
+            <p className="text-sm text-[#FFFCF5]/60 leading-relaxed font-Clash-Grotesk-semibold font-normal">
               High-impact visual sequencing and narrative pacing. Precision-cut
               media deployment.
             </p>
