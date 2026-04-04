@@ -7,6 +7,7 @@ import CustomCursor from './CustomCursor';
 import SystemDock from './SystemDock';
 // import Navbar from './Navbar';
 import Taskbar from './TaskBar';
+// import SolutionsContent from './SolutionsContent';
 
 gsap.registerPlugin(Draggable);
 
@@ -136,10 +137,10 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
     if (!windowRef.current || !dragHandleRef.current) return;
 
     let ctx = gsap.context(() => {
-      // Slides in from the right (x: 40 to x: 0)
+      // Slides in from the right (x: 20 to x: 0)
       gsap.fromTo(windowRef.current, 
-        { opacity: 0, scale: 0.98, x: 40 },
-        { opacity: 1, scale: 1, x: 0, duration: 0.6, ease: "power3.out" }
+        { opacity: 0, scale: 0.98, x: 20 },
+        { opacity: 1, scale: 1, x: 0, duration: 0.5, ease: "power3.out" }
       );
 
       Draggable.create(windowRef.current, {
@@ -227,6 +228,13 @@ export default function App() {
   const [openWindows, setOpenWindows] = useState<(WindowProps & { zIndex: number })[]>([]);
   const [highestZ, setHighestZ] = useState(10);
 
+  // NATIVE AUDIO ENGINE - i avoided npm i use-sound because of the 300+kb dependency size and the fact that we only need 2 sounds with basic playback functionality. This is a very lightweight custom solution... i think
+  const playSystemSound = (type: 'open' | 'close') => {
+    const sound = new Audio(`/sounds/${type}.m4a`);
+    sound.volume = 0.6;
+    sound.play().catch(() => {});
+  };
+
   //  BOOT SEQUENCE REFS 
   const bootScreenRef = useRef<HTMLDivElement>(null);
   const bootLogoPathRef = useRef<SVGPathElement>(null);
@@ -303,7 +311,7 @@ export default function App() {
   const pages: Record<PageKey, Omit<WindowProps, 'onClose' | 'onFocus' | 'index' | 'totalWindows'>> = {
     solutions: { 
       id: 'solutions', title: 'Solutions +', 
-      content: 'Strategic solutions designed from first principles to operate in complex, constrained, and continually changing conditions.',
+      content: 'Sophisticated interfaces. Bulletproof architectures. Scalable systems. We build the backbone for your boldest ambitions.',
       defaultPosition: { top: '20%', left: '17.5%' }
     },
     platform: { 
@@ -329,6 +337,7 @@ export default function App() {
   };
 
   const openWindow = (pageKey: string) => {
+      playSystemSound('open'); // Play open sound on click
     const page = pages[pageKey as PageKey];
     
     setOpenWindows((prevWins) => {
@@ -344,6 +353,7 @@ export default function App() {
   };
 
   const closeWindow = (id: string) => {
+    playSystemSound('close'); // Play close sound on click
     setOpenWindows((prevWins) => prevWins.filter((w) => w.id !== id));
   };
 

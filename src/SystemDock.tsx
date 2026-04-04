@@ -122,5 +122,5 @@ export default function SystemDock({ availablePages, openWindows, openWindow }: 
       </div>
       
     </div>
-  );
-}
+  );  
+} 
