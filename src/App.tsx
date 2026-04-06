@@ -10,6 +10,7 @@ import Taskbar from './TaskBar';
 import SolutionsContent from './SolutionsContent';
 import WorksContent from './WorksContent';
 import ContactContent from './ContactContent';
+import MobileMenu from './MobileMenu';
 
 gsap.registerPlugin(Draggable);
 
@@ -238,6 +239,8 @@ export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [openWindows, setOpenWindows] = useState<(WindowProps & { zIndex: number })[]>([]);
   const [highestZ, setHighestZ] = useState(10);
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // NATIVE AUDIO ENGINE - i avoided npm i use-sound, to be safe... i think
   const playSystemSound = (type: 'open' | 'close') => {
@@ -482,14 +485,27 @@ export default function App() {
       ))}
 
       {/* THE TACTICAL SYSTEM DOCK (Now at top of viewport) */}
-      <SystemDock 
-        availablePages={Object.values(pages)} 
-        openWindows={openWindows} 
-        openWindow={openWindow} 
-      />
+<div className="hidden md:block">
+        <SystemDock 
+          availablePages={Object.values(pages)} 
+          openWindows={openWindows} 
+          openWindow={openWindow} 
+        />
+      </div>
+      
+      {/* THE TOP TASKBAR (Controls the mobile menu toggle) */}
       <Taskbar 
-      openWindow={openWindow} 
-      openWindows={openWindows}
+        openWindow={openWindow}
+        openWindows={openWindows}
+        onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        isMenuOpen={isMobileMenuOpen}
+      />
+      
+      {/* THE FULL-SCREEN MOBILE OVERLAY */}
+      <MobileMenu 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)} 
+        openWindow={openWindow} 
       />
 
     </div>

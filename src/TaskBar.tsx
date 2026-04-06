@@ -3,7 +3,9 @@ import primaryLogo2 from './assets/primaryLogo2.png';
 
 interface TaskbarProps {
   openWindow: (pageKey: string) => void;
-  openWindows: { id: string }[]; // to show the macOS active dots
+  openWindows: any[]; // to show the macOS active dots
+  onToggleMenu: () => void;
+  isMenuOpen: boolean;
 }
 
 // SVG Icons for the dock
