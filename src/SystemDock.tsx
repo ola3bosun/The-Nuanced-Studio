@@ -96,13 +96,13 @@ export default function SystemDock({ availablePages, openWindows, openWindow }: 
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 w-full h-8 bg-[#010101]/80 backdrop-blur-md border-b border-[#FFFCF5]/10 flex items-center justify-between px-6 z-[9000] font-mono text-[10px] uppercase text-[#FFFCF5]/50 tracking-[0.15em] select-none">
+    <div className="hidden md:flex  fixed top-0  w-full h-8 bg-[#010101]/80 backdrop-blur-md border-b border-[#FFFCF5]/10 flex items-center justify-between px-6 z-[9000] font-mono text-[10px] uppercase text-[#FFFCF5]/50 tracking-[0.15em] select-none">
       
       <div className="flex items-center h-full">
         <span className="text-[#E1FF00] mr-6 hidden md:inline-block">TNS_OS v1.35.DEV_TBS</span>
         
         <div className="flex h-full">
-          {availablePages.map(page => {
+          {availablePages?.map(page => {
             const isOpen = openWindows.some(w => w.id === page.id);
             return (
               <DockTab 

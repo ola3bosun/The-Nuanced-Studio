@@ -71,7 +71,7 @@ export default function Taskbar({ openWindow, openWindows }: TaskbarProps) {
           const isOpen = openWindows.some((w) => w.id === (item.id === 'demo' ? 'contact' : item.id));
 
           return (
-            <div key={item.id} className="relative flex flex-col items-center justify-end h-full">
+            <div key={item.id} className="relative flex flex-col items-center justify-end h-full ">
               
               {/* The Hover Tooltip */}
               <div 

@@ -1,20 +1,21 @@
 import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react';
 import gsap from 'gsap';
 import { Draggable } from 'gsap/all';
+import { SplitText } from 'gsap/SplitText';
 // @ts-ignore
 import canvasSketch from 'canvas-sketch';
 import CustomCursor from './CustomCursor';
 import SystemDock from './SystemDock';
-// import Navbar from './Navbar';
 import Taskbar from './TaskBar';
 import SolutionsContent from './SolutionsContent';
 import WorksContent from './WorksContent';
 import ContactContent from './ContactContent';
-import MobileMenu from './MobileMenu';
 
-gsap.registerPlugin(Draggable);
+// Register all GSAP plugins
+gsap.registerPlugin(Draggable, SplitText);
 
 // CANVAS-SKETCH UTILITIES & CLASSES
+
 const randomRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
 const mapRange = (value: number, inMin: number, inMax: number, outMin: number, outMax: number) => {
@@ -113,13 +114,14 @@ const sketch = ({ width, height }: { width: number; height: number }) => {
 };
 
 // THE WINDOW COMPONENT 
+
 interface WindowProps {
   id: string;
   title: string;
   content: ReactNode;
   zIndex?: number;
-  index: number;         // NEW: Tracks its position in the array
-  totalWindows: number;  // NEW: Tracks how many windows are open globally
+  index: number;
+  totalWindows: number;
   onClose: (id: string) => void;
   onFocus: (id: string) => void;
   defaultPosition: { top: string; left: string };
@@ -129,18 +131,17 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
   const windowRef = useRef<HTMLDivElement>(null);
   const dragHandleRef = useRef<HTMLDivElement>(null);
   const prevTotalRef = useRef(totalWindows);
-
   const onFocusRef = useRef(onFocus);
+
   useLayoutEffect(() => {
     onFocusRef.current = onFocus;
   }, [onFocus]);
 
-  //  ENTRANCE ANIMATION 
+  // ENTRANCE ANIMATION 
   useLayoutEffect(() => {
     if (!windowRef.current || !dragHandleRef.current) return;
 
     let ctx = gsap.context(() => {
-      // Slides in from the right (x: 20 to x: 0)
       gsap.fromTo(windowRef.current, 
         { opacity: 0, scale: 0.98, x: 20 },
         { opacity: 1, scale: 1, x: 0, duration: 0.5, ease: "power3.out" }
@@ -158,30 +159,23 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
     return () => ctx.revert(); 
   }, [id]); 
 
-  //  DYNAMIC SLIDE (THE PUSH/PULL ENGINE) 
+  // DYNAMIC SLIDE (THE PUSH/PULL ENGINE) 
   useLayoutEffect(() => {
     const prevTotal = prevTotalRef.current;
-    
-    // If a NEW window opened, and this is an OLDER window, push it left to make room
     if (totalWindows > prevTotal && index < totalWindows - 1) {
       gsap.to(windowRef.current, { x: "-=40", duration: 0.6, ease: "power3.out" });
-    } 
-    // If a window CLOSED, pull the remaining windows back to the right
-    else if (totalWindows < prevTotal) {
+    } else if (totalWindows < prevTotal) {
       gsap.to(windowRef.current, { x: "+=40", duration: 0.6, ease: "power3.out" });
     }
-    
     prevTotalRef.current = totalWindows;
   }, [totalWindows, index]);
 
-  //  EXIT ANIMATION 
+  // EXIT ANIMATION 
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
     const draggables = Draggable.get(windowRef.current);
     if (draggables) draggables.kill();
 
-    // Fade out and slide relative to its right ("+=40") so it doesn't teleport if dragged
     gsap.to(windowRef.current, {
       opacity: 0,
       scale: 0.98,
@@ -192,20 +186,15 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
     });
   };
 
-  // start responsivness from here
-
-  // // Detect if on a mobile device (roughly < 768px wide)
-  // const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
-  // // If mobile, ignore the custom top/left props and center it.
-  // const mobilePosition = { top: '5%', left: '5%' };
-  // const appliedPosition = isMobile ? mobilePosition : defaultPosition;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const mobilePosition = { top: '5%', left: '5%' };
+  const appliedPosition = isMobile ? mobilePosition : defaultPosition; 
 
   return (
     <div
       ref={windowRef}
       onMouseDown={() => onFocus(id)}
-      style={{ zIndex, position: 'absolute', top: defaultPosition.top, left: defaultPosition.left }}
+      style={{ zIndex, position: 'absolute', top: appliedPosition.top, left: appliedPosition.left }}
       className="w-auto max-w-[95vw] max-h-[85vh] bg-[#010101]/90 backdrop-blur-xl border border-[#FFFCF5]/10 shadow-2xl rounded-sm overflow-hidden flex flex-col"
     >
       <div 
@@ -232,24 +221,142 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
   );
 };
 
+
+// MOBILE NAVIGATION COMPONENT (Internal)
+
+interface MobileNavProps {
+  isOpen: boolean;
+  onToggle: () => void;
+  openWindow: (pageKey: string) => void;
+}
+
+const MobileNav = ({ isOpen, onToggle, openWindow }: MobileNavProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const linksRef = useRef<HTMLDivElement>(null);
+  const sysNodeRef = useRef<HTMLDivElement>(null);
+  
+  const navTextRef = useRef<HTMLDivElement>(null);
+  const closeTextRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef(true);
+
+  const handleNavClick = (pageKey: string) => {
+    openWindow(pageKey);
+    onToggle(); 
+  };
+
+  useLayoutEffect(() => {
+    if (!overlayRef.current || !linksRef.current || !sysNodeRef.current || !navTextRef.current || !closeTextRef.current) return;
+
+    const splitNav = new SplitText(navTextRef.current, { type: 'chars' });
+    const splitClose = new SplitText(closeTextRef.current, { type: 'chars' });
+    const linkElements = linksRef.current.children;
+
+    let ctx = gsap.context(() => {
+      if (isFirstRender.current) {
+        gsap.set(splitClose.chars, { y: 15, opacity: 0 });
+        isFirstRender.current = false;
+        return;
+      }
+
+      if (isOpen) {
+        gsap.to(splitNav.chars, { y: -15, opacity: 0, duration: 0.3, stagger: 0.02, ease: "power3.in" });
+        gsap.fromTo(splitClose.chars,
+          { y: 15, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.3, stagger: 0.02, ease: "power3.out", delay: 0.15 }
+        );
+
+        gsap.to(overlayRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.4, ease: "power2.out" });
+
+        gsap.fromTo(linkElements, 
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power3.out", delay: 0.2 }
+        );
+
+        gsap.fromTo(sysNodeRef.current,
+          { opacity: 0, scale: 0.95 },
+          { opacity: 0.7, scale: 1, duration: 0.5, ease: "power2.out", delay: 0.5 }
+        );
+
+      } else {
+        gsap.to(splitClose.chars, { y: -15, opacity: 0, duration: 0.3, stagger: 0.02, ease: "power3.in" });
+        gsap.fromTo(splitNav.chars,
+          { y: 15, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.3, stagger: 0.02, ease: "power3.out", delay: 0.15 }
+        );
+
+        gsap.to(linkElements, { y: -20, opacity: 0, duration: 0.3, stagger: 0.05, ease: "power3.in" });
+        gsap.to(sysNodeRef.current, { opacity: 0, duration: 0.2 });
+        gsap.to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.4, ease: "power2.in", delay: 0.2 });
+      }
+    });
+
+    return () => {
+      splitNav.revert();
+      splitClose.revert();
+      ctx.revert();
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="md:hidden block" ref={containerRef}>
+      <div 
+        ref={overlayRef}
+        className="fixed inset-0 z-[8000] bg-[#010101]/95 backdrop-blur-xl opacity-0 pointer-events-none flex flex-col justify-center px-8"
+      >
+        <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(rgba(255,252,245,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,252,245,0.1)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" />
+
+        <nav ref={linksRef} className="flex flex-col gap-10 text-4xl tracking-tight font-light text-[#FFFCF5] relative z-10">
+          <button onClick={() => handleNavClick('solutions')} className="text-left hover:text-[#E1FF00] transition-colors origin-left">
+            Solutions +
+          </button>
+          <button onClick={() => handleNavClick('works')} className="text-left hover:text-[#E1FF00] transition-colors origin-left">
+            Works +
+          </button>
+          <button onClick={() => handleNavClick('contact')} className="text-left hover:text-[#E1FF00] transition-colors origin-left">
+            Contact
+          </button>
+        </nav>
+
+        <div ref={sysNodeRef} className="absolute bottom-[120px] left-8 text-[#E1FF00] font-mono text-[10px] uppercase tracking-[0.2em] opacity-0">
+          <span className="animate-pulse mr-2">●</span>
+          TNS_MOBILE_NODE_ACTIVE
+        </div>
+      </div>
+
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[8500] w-[140px]">
+        <button 
+          onClick={onToggle} 
+          className="w-full h-12 flex items-center justify-center bg-[#010101]/80 backdrop-blur-md border border-[#FFFCF5]/15 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] font-mono text-[10px] tracking-widest text-[#FFFCF5] transition-colors overflow-hidden relative"
+        >
+          <div ref={navTextRef} className="absolute flex gap-[1px] text-[#E1FF00]">[SYS_NAV]</div>
+          <div ref={closeTextRef} className="absolute flex gap-[1px] text-[#FFFCF5]/50">[CLOSE]</div>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
+
 // THE MAIN APP
+
 export type PageKey = 'solutions' | 'works' | 'contact';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [openWindows, setOpenWindows] = useState<(WindowProps & { zIndex: number })[]>([]);
   const [highestZ, setHighestZ] = useState(10);
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // NATIVE AUDIO ENGINE - i avoided npm i use-sound, to be safe... i think
+  // NATIVE AUDIO ENGINE
   const playSystemSound = (type: 'open' | 'close') => {
     const sound = new Audio(`/sounds/${type}.m4a`);
     sound.volume = 0.5;
     sound.play().catch(() => {});
   };
 
-  //  BOOT SEQUENCE REFS 
+  // BOOT SEQUENCE REFS 
   const bootScreenRef = useRef<HTMLDivElement>(null);
   const bootLogoPathRef = useRef<SVGPathElement>(null);
   const bootLineRef = useRef<SVGLineElement>(null);
@@ -260,7 +367,7 @@ export default function App() {
   const heroContentRef = useRef<HTMLDivElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
-  //  BOOT SEQUENCE ANIMATION 
+  // BOOT SEQUENCE ANIMATION 
   useLayoutEffect(() => {
     let ctx = gsap.context(() => {
       const tl = gsap.timeline({
@@ -269,18 +376,12 @@ export default function App() {
         }
       });
 
-      // Phase 1: Draw the SVG Logo 
       tl.to(bootLogoPathRef.current, { strokeDashoffset: 0, duration: 2, ease: "power1.inOut" });
-
-      // Phase 2: Draw Horizon Line 
       tl.to(bootLineRef.current, { strokeDashoffset: 0, duration: 0.8, ease: "power2.inOut" }, 2.0);
-
-      // Phase 3: Terminal Typing
       tl.to(termLine1.current, { opacity: 1, duration: 0.25 }, "+=0.2");
       tl.to(termLine2.current, { opacity: 1, duration: 0.15 }, "+=0.4");
       tl.to(termLine3.current, { opacity: 1, duration: 1 }, "+=0.4");
 
-      // Phase 4: The Snap
       tl.to(bootTextRef.current, { y: "-=40", opacity: 0, duration: 0.6, ease: "power3.in" }, "+=0.6");
       tl.to(bootScreenRef.current, { opacity: 0, duration: 0.5, ease: "power1.inOut" }, "<");
 
@@ -331,7 +432,7 @@ export default function App() {
     works: {
       id: 'works', title: 'Works +',
       content: <WorksContent />,
-      defaultPosition: { top: '40%', left: '25%' }
+      defaultPosition: { top: '7.5%', left: '25%' }
     },
     contact: {
       id: 'contact', title: 'Contact',
@@ -351,7 +452,7 @@ export default function App() {
   };
 
   const openWindow = (pageKey: string) => {
-      playSystemSound('open'); // Play open sound on click
+    playSystemSound('open');
     const page = pages[pageKey as PageKey];
     
     setOpenWindows((prevWins) => {
@@ -367,7 +468,7 @@ export default function App() {
   };
 
   const closeWindow = (id: string) => {
-    playSystemSound('close'); // Play close sound on click
+    playSystemSound('close');
     setOpenWindows((prevWins) => prevWins.filter((w) => w.id !== id));
   };
 
@@ -389,24 +490,20 @@ export default function App() {
             stroke="#E1FF00"
             strokeWidth="1"
             pathLength="100"
-            className="[stroke-dasharray:100] [stroke-dashoffset:100]"
+            className="[stroke-dasharray:100] [stroke-dashoffset:100] zIndex-1]"
           />
         </svg>
       </div>
       
       {/* THE BOOT SCREEN OVERLAY  */}
       <div ref={bootScreenRef} className="fixed inset-0 z-50 bg-[#010101] pointer-events-none flex flex-col">
-        
-        {/* Exact structural clone of the padding/grid to ensure pixel-perfect SVG alignment */}
         <div className="h-[50vh] flex flex-col relative px-6 md:px-8 pt-12">
           <nav className="grid grid-cols-12 gap-4 w-full items-center">
             <div className="col-span-4 md:col-span-6 flex justify-start">
-              {/* SVG wrapped in the identical h-6 container to match the real PNG */}
               <div className="h-6 flex items-center justify-start">
                 <svg viewBox="0 0 130 100" className="h-full w-auto overflow-visible">
                   <path
                     ref={bootLogoPathRef}
-                    // Adjusted path to precisely match the pinched bowtie shape
                     d="M 2 2 Q 65 35 128 2 L 128 98 Q 65 65 2 98 Z"
                     fill="transparent"
                     stroke="#FFFCF5"
@@ -421,7 +518,6 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Phase 3: The Terminal Text positioned above the horizontal line */}
         <div 
           ref={bootTextRef} 
           className="absolute bottom-[52vh] left-6 md:left-8 flex flex-col justify-end text-[16px] md:text-[15px] text-[#FFFCF5]/70 tracking-wide font-mono space-y-2"
@@ -434,14 +530,7 @@ export default function App() {
 
       {/* TOP HALF (50vh)  */}
       <div ref={heroContentRef} className="h-[50vh] flex flex-col relative z-10 px-6 md:px-8 pt-6 opacity-0">
-        
-        {/* Render Extracted Navbar Component */}
-        {/* <Navbar openWindow={openWindow} /> */}
-
-        {/* HERO COPY (12-Column Grid) */}
         <div className="grid grid-cols-12 gap-4 flex-1 items-center pb-12">
-          
-          {/* Left Subtext */}
           <div className="col-span-12 md:col-span-5 flex flex-col justify-center">
             <div className="text-[16px] text-[#FFFCF5]/70 tracking-wide leading-relaxed space-y-3">
               <p>Built on certainty</p>
@@ -449,8 +538,6 @@ export default function App() {
               <p className="font-mono text-[#E1FF00] tracking-widest pt-2">[ TNS ]</p>
             </div>
           </div>
-
-          {/* Right Main Text */}
           <div className="col-span-12 md:col-start-7 md:col-span-6 flex flex-col justify-center text-left">
             <h1 className="text-5xl md:text-7xl font-medium tracking-tight leading-[1.1] mb-5">
               The Nuanced <br /> Studio
@@ -460,7 +547,6 @@ export default function App() {
               <p>are complex, constrained and continually changing</p>
             </div>
           </div>
-          
         </div>
       </div>
 
@@ -473,7 +559,7 @@ export default function App() {
       </div>
 
       {/* RENDER ACTIVE WINDOWS */}
-    {openWindows.map((win, index) => (
+      {openWindows.map((win, index) => (
         <WindowPopup
           key={win.id}
           {...win}
@@ -484,27 +570,25 @@ export default function App() {
         />
       ))}
 
-      {/* THE TACTICAL SYSTEM DOCK (Now at top of viewport) */}
-<div className="hidden md:block">
+      {/* DESKTOP ONLY: System Dock & Taskbar */}
+      <div className="hidden md:block">
         <SystemDock 
-          availablePages={Object.values(pages)} 
-          openWindows={openWindows} 
-          openWindow={openWindow} 
+          availablePages={Object.values(pages).map(p => ({ id: p.id, title: p.title }))}
+          openWindow={openWindow}
+          openWindows={openWindows}
+        />
+        <Taskbar 
+          openWindow={openWindow}
+          openWindows={openWindows}
+          onToggleMenu={() => {}} 
+          isMenuOpen={false} 
         />
       </div>
-      
-      {/* THE TOP TASKBAR (Controls the mobile menu toggle) */}
-      <Taskbar 
-        openWindow={openWindow}
-        openWindows={openWindows}
-        onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        isMenuOpen={isMobileMenuOpen}
-      />
-      
-      {/* THE FULL-SCREEN MOBILE OVERLAY */}
-      <MobileMenu 
+
+      {/* MOBILE ONLY: Self-contained Tactical Navigation */}
+      <MobileNav 
         isOpen={isMobileMenuOpen} 
-        onClose={() => setIsMobileMenuOpen(false)} 
+        onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
         openWindow={openWindow} 
       />
 
