@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import primaryLogo2 from './assets/primaryLogo2.png';
+import primaryLogo2 from '../../assets/primaryLogo2.png';
 
 interface TaskbarProps {
   openWindow: (pageKey: string) => void;
