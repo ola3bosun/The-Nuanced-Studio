@@ -78,8 +78,12 @@ const settings = {
 
 const sketch = ({ width, height }: { width: number; height: number }) => {
   const agents: Agent[] = [];
-  const numAgents = 120;
-  const connectDist = 150;
+  let numAgents = 120;
+  let connectDist = 150;
+  if (width < 500) {
+    numAgents = 80;
+    connectDist = 200;
+  };
 
   for (let i = 0; i < numAgents; i++) {
     agents.push(new Agent(randomRange(0, width), randomRange(0, height)));
@@ -163,9 +167,9 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
   useLayoutEffect(() => {
     const prevTotal = prevTotalRef.current;
     if (totalWindows > prevTotal && index < totalWindows - 1) {
-      gsap.to(windowRef.current, { x: "-=40", duration: 0.6, ease: "power3.out" });
+      gsap.to(windowRef.current, { x: "-=20", duration: 0.6, ease: "power3.out" });
     } else if (totalWindows < prevTotal) {
-      gsap.to(windowRef.current, { x: "+=40", duration: 0.6, ease: "power3.out" });
+      gsap.to(windowRef.current, { x: "+=20", duration: 0.6, ease: "power3.out" });
     }
     prevTotalRef.current = totalWindows;
   }, [totalWindows, index]);
@@ -221,8 +225,7 @@ const WindowPopup = ({ id, title, content, zIndex, index, totalWindows, onClose,
   );
 };
 
-
-// MOBILE NAVIGATION COMPONENT (Internal)
+// MOBILE NAVIGATION COMPONENT
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -231,113 +234,176 @@ interface MobileNavProps {
 }
 
 const MobileNav = ({ isOpen, onToggle, openWindow }: MobileNavProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const subHeaderRef = useRef<HTMLDivElement>(null);
   const linksRef = useRef<HTMLDivElement>(null);
-  const sysNodeRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
   
+  // Animation Refs
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
   const navTextRef = useRef<HTMLDivElement>(null);
   const closeTextRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
+
+  // UTC Time for the sub-header
+  const [utcTime, setUtcTime] = useState("");
+  useEffect(() => {
+    const updateTime = () => setUtcTime(new Date().toISOString().substring(11, 19));
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNavClick = (pageKey: string) => {
     openWindow(pageKey);
     onToggle(); 
   };
 
+  // TIMELINE SETUP
   useLayoutEffect(() => {
-    if (!overlayRef.current || !linksRef.current || !sysNodeRef.current || !navTextRef.current || !closeTextRef.current) return;
-
-    const splitNav = new SplitText(navTextRef.current, { type: 'chars' });
-    const splitClose = new SplitText(closeTextRef.current, { type: 'chars' });
-    const linkElements = linksRef.current.children;
+    if (!navTextRef.current || !closeTextRef.current || !overlayRef.current) return;
 
     let ctx = gsap.context(() => {
-      if (isFirstRender.current) {
-        gsap.set(splitClose.chars, { y: 15, opacity: 0 });
-        isFirstRender.current = false;
-        return;
-      }
+      const splitNav = new SplitText(navTextRef.current, { type: 'chars' });
+      const splitClose = new SplitText(closeTextRef.current, { type: 'chars' });
 
-      if (isOpen) {
-        gsap.to(splitNav.chars, { y: -15, opacity: 0, duration: 0.3, stagger: 0.02, ease: "power3.in" });
-        gsap.fromTo(splitClose.chars,
-          { y: 15, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.3, stagger: 0.02, ease: "power3.out", delay: 0.15 }
-        );
+      gsap.set(closeTextRef.current, { opacity: 1 });
 
-        gsap.to(overlayRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.4, ease: "power2.out" });
+      const links = linksRef.current?.children;
+      const footerElements = footerRef.current?.children;
 
-        gsap.fromTo(linkElements, 
-          { y: 30, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power3.out", delay: 0.2 }
-        );
+      // Define Initial Explicit States
+      gsap.set(splitClose.chars, { y: 15, opacity: 0 });
+      gsap.set(overlayRef.current, { autoAlpha: 0 });
+      gsap.set(headerRef.current, { y: -20, opacity: 0 });
+      gsap.set(subHeaderRef.current, { y: -20, opacity: 0 });
+      if (links) gsap.set(links, { y: 40, opacity: 0 });
+      if (footerElements) gsap.set(footerElements, { y: 20, opacity: 0 });
 
-        gsap.fromTo(sysNodeRef.current,
-          { opacity: 0, scale: 0.95 },
-          { opacity: 0.7, scale: 1, duration: 0.5, ease: "power2.out", delay: 0.5 }
-        );
+      // Timeline (Paused)
+      const tl = gsap.timeline({ paused: true });
 
-      } else {
-        gsap.to(splitClose.chars, { y: -15, opacity: 0, duration: 0.3, stagger: 0.02, ease: "power3.in" });
-        gsap.fromTo(splitNav.chars,
-          { y: 15, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.3, stagger: 0.02, ease: "power3.out", delay: 0.15 }
-        );
+      // Morph Button: [SYS_NAV] out, [CLOSE] in
+      tl.to(splitNav.chars, { y: -15, opacity: 0, duration: 0.3, stagger: 0.02, ease: "power3.inOut" }, 0);
+      tl.to(splitClose.chars, { y: 0, opacity: 1, duration: 0.3, stagger: 0.02, ease: "power3.inOut" }, 0.15);
 
-        gsap.to(linkElements, { y: -20, opacity: 0, duration: 0.3, stagger: 0.05, ease: "power3.in" });
-        gsap.to(sysNodeRef.current, { opacity: 0, duration: 0.2 });
-        gsap.to(overlayRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.4, ease: "power2.in", delay: 0.2 });
-      }
+      // Reveal Overlay
+      tl.to(overlayRef.current, { autoAlpha: 1, duration: 0.4, ease: "power2.out" }, 0);
+      
+      // Stagger UI Elements down into place
+      tl.to(headerRef.current, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 0.1);
+      tl.to(subHeaderRef.current, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 0.15);
+      if (links) tl.to(links, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power3.out" }, 0.2);
+      if (footerElements) tl.to(footerElements, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: "power2.out" }, 0.4);
+
+      tlRef.current = tl;
     });
 
-    return () => {
-      splitNav.revert();
-      splitClose.revert();
-      ctx.revert();
-    };
+    // Cleanly reverts timeline and SplitText instances
+    return () => ctx.revert(); 
+  }, []);
+
+  //PLAY / REVERSE ON TOGGLE
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    
+    if (isOpen) {
+      tlRef.current?.play();
+    } else {
+      tlRef.current?.reverse();
+    }
   }, [isOpen]);
 
   return (
-    <div className="md:hidden block" ref={containerRef}>
+    <div className="md:hidden block">
+      
+      {/* PERSISTENT FLOATING TRIGGER BUTTON (Bottom Center) */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9000]">
+        <button 
+          onClick={onToggle} 
+          className="w-[140px] h-12 flex items-center justify-center bg-[#010101]/80 backdrop-blur-md border border-[#FFFCF5]/15 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] font-mono text-[10px] tracking-widest hover:bg-[#FFFCF5]/5 transition-colors relative overflow-hidden"
+        >
+          <div ref={navTextRef} className="absolute flex gap-[1px] text-[#E1FF00]">[ SYS_NAV ]</div>
+          {/* hidden until its needed (opacity-0) */}
+          <div ref={closeTextRef} className="absolute flex gap-[1px] text-[#FFFCF5]/50 opacity-0">[ CLOSE ]</div>
+        </button>
+      </div>
+
+      {/* THE FULL-SCREEN OVERLAY */}
       <div 
         ref={overlayRef}
-        className="fixed inset-0 z-[8000] bg-[#010101]/95 backdrop-blur-xl opacity-0 pointer-events-none flex flex-col justify-center px-8"
+        className="fixed inset-0 z-[8000] bg-[#010101] invisible opacity-0 flex flex-col text-[#FFFCF5] font-mono"
       >
-        <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(rgba(255,252,245,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,252,245,0.1)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" />
+        
+        {/* HEADER ROW */}
+        <div ref={headerRef} className="flex justify-between items-center p-5 border-b border-[#FFFCF5]/20 text-xs tracking-widest uppercase">
+          <span>The Nuanced Studio</span>
+        </div>
 
-        <nav ref={linksRef} className="flex flex-col gap-10 text-4xl tracking-tight font-light text-[#FFFCF5] relative z-10">
-          <button onClick={() => handleNavClick('solutions')} className="text-left hover:text-[#E1FF00] transition-colors origin-left">
+        {/* SUB-HEADER ROW */}
+        <div ref={subHeaderRef} className="flex justify-between items-center p-5 border-b border-[#FFFCF5]/10 text-[10px] tracking-widest uppercase text-[#FFFCF5]/70">
+          <div className="flex gap-4 items-center">
+            <span className="flex items-center gap-2 text-[#FFFCF5]">
+              <span className="w-2 h-2 bg-[#E1FF00] inline-block shadow-[0_0_8px_rgba(225,255,0,0.6)] transition-colors"></span>
+              SYSTEMS ONLINE
+            </span>
+            <span>UTC: {utcTime}</span>
+          </div>
+          <span>[ // ]</span>
+        </div>
+
+        {/* MAIN NAVIGATION LINKS */}
+        <nav ref={linksRef} className="flex-1 flex flex-col items-left gap-12 text-4xl sm:text-5xl tracking-widest uppercase">
+          <button onClick={() => handleNavClick('solutions')} className="group flex items-center gap-4 hover:text-[#E1FF00] transition-colors pl-5 pt-8">
+            <span className="text-[#FFFCF5]/30 group-hover:text-[#E1FF00] transition-colors">[</span>
             Solutions +
+            <span className="text-[#FFFCF5]/30 group-hover:text-[#E1FF00] transition-colors">]</span>
           </button>
-          <button onClick={() => handleNavClick('works')} className="text-left hover:text-[#E1FF00] transition-colors origin-left">
+          
+          <button onClick={() => handleNavClick('works')} className="group flex items-center gap-4 hover:text-[#E1FF00] transition-colors pl-5">
+            <span className="text-[#FFFCF5]/30 group-hover:text-[#E1FF00] transition-colors">[</span>
             Works +
+            <span className="text-[#FFFCF5]/30 group-hover:text-[#E1FF00] transition-colors">]</span>
           </button>
-          <button onClick={() => handleNavClick('contact')} className="text-left hover:text-[#E1FF00] transition-colors origin-left">
+
+          <button onClick={() => handleNavClick('contact')} className="group flex items-center gap-4 hover:text-[#E1FF00] transition-colors pl-5">
+            <span className="text-[#FFFCF5]/30 group-hover:text-[#E1FF00] transition-colors">[</span>
             Contact
+            <span className="text-[#FFFCF5]/30 group-hover:text-[#E1FF00] transition-colors">]</span>
           </button>
         </nav>
 
-        <div ref={sysNodeRef} className="absolute bottom-[120px] left-8 text-[#E1FF00] font-mono text-[10px] uppercase tracking-[0.2em] opacity-0">
-          <span className="animate-pulse mr-2">●</span>
-          TNS_MOBILE_NODE_ACTIVE
-        </div>
-      </div>
+        {/* FOOTER GRID */}
+        <div ref={footerRef} className="p-5 flex flex-col gap-8 text-[10px] uppercase tracking-widest text-[#FFFCF5]/50 border-t border-[#FFFCF5]/10">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <span className="text-[#FFFCF5]">Location</span>
+              <span>[7.404307 / N 7°24'15.504']</span>
+              <span>[3.904944 / E3°54'17.798'']</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[#FFFCF5]">Enquiries</span>
+              <span>HELLO@TNS.COM</span>
+            </div>
+          </div>
 
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[8500] w-[140px]">
-        <button 
-          onClick={onToggle} 
-          className="w-full h-12 flex items-center justify-center bg-[#010101]/80 backdrop-blur-md border border-[#FFFCF5]/15 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] font-mono text-[10px] tracking-widest text-[#FFFCF5] transition-colors overflow-hidden relative"
-        >
-          <div ref={navTextRef} className="absolute flex gap-[1px] text-[#E1FF00]">[SYS_NAV]</div>
-          <div ref={closeTextRef} className="absolute flex gap-[1px] text-[#FFFCF5]/50">[CLOSE]</div>
-        </button>
+          <div className="flex justify-between items-end border-t border-[#FFFCF5]/10 pt-5">
+            <div className="flex flex-col gap-1 max-w-[200px] leading-relaxed">
+              <span>Dev_TBS</span>
+              <span>Built with grit.</span>
+            </div>
+            <span className="text-[#FFFCF5]">© {new Date().getFullYear()}</span>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 };
-
-
 
 // THE MAIN APP
 
@@ -345,6 +411,10 @@ export type PageKey = 'solutions' | 'works' | 'contact';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // NEW REF: Wraps the entire navigation UI layer to hide during boot sequence
+  const uiLayerRef = useRef<HTMLDivElement>(null);
+
   const [openWindows, setOpenWindows] = useState<(WindowProps & { zIndex: number })[]>([]);
   const [highestZ, setHighestZ] = useState(10);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -395,6 +465,11 @@ export default function App() {
         { opacity: 1, duration: 1.5, ease: "power2.out" }, 
         "<"
       );
+
+      // FADE IN THE NAVIGATION UI AFTER BOOT IS COMPLETE
+      if (uiLayerRef.current) {
+        tl.to(uiLayerRef.current, { autoAlpha: 1, duration: 1, ease: "power2.out" }, "<");
+      }
     });
 
     return () => ctx.revert();
@@ -478,7 +553,7 @@ export default function App() {
       <CustomCursor />
 
       {/* THE PERMANENT HORIZON LINE */}
-      <div className="absolute top-[50vh] left-0 w-full h-[1px] z-[15] pointer-events-none">
+      <div className="absolute top-[50vh] left-0 w-full h-[1px] z-0 pointer-events-none">
         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
           <line
             ref={bootLineRef}
@@ -570,27 +645,31 @@ export default function App() {
         />
       ))}
 
-      {/* DESKTOP ONLY: System Dock & Taskbar */}
-      <div className="hidden md:block">
-        <SystemDock 
-          availablePages={Object.values(pages).map(p => ({ id: p.id, title: p.title }))}
-          openWindow={openWindow}
-          openWindows={openWindows}
-        />
-        <Taskbar 
-          openWindow={openWindow}
-          openWindows={openWindows}
-          onToggleMenu={() => {}} 
-          isMenuOpen={false} 
+      {/* WRAPPER LAYER: Keeps Navigation UI hidden until boot sequence completes */}
+      <div ref={uiLayerRef} className="invisible opacity-0">
+        
+        {/* DESKTOP ONLY: System Dock & Taskbar */}
+        <div className="hidden md:block">
+          <SystemDock 
+            availablePages={Object.values(pages).map(p => ({ id: p.id, title: p.title }))}
+            openWindow={openWindow}
+            openWindows={openWindows}
+          />
+          <Taskbar 
+            openWindow={openWindow}
+            openWindows={openWindows}
+            onToggleMenu={() => {}} 
+            isMenuOpen={false} 
+          />
+        </div>
+
+        {/* MOBILE ONLY: Self-contained Tactical Navigation */}
+        <MobileNav 
+          isOpen={isMobileMenuOpen} 
+          onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+          openWindow={openWindow} 
         />
       </div>
-
-      {/* MOBILE ONLY: Self-contained Tactical Navigation */}
-      <MobileNav 
-        isOpen={isMobileMenuOpen} 
-        onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-        openWindow={openWindow} 
-      />
 
     </div>
   );
