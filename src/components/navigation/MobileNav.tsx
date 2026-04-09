@@ -114,13 +114,13 @@ const MobileNav = ({ isOpen, onToggle, openWindow }: MobileNavProps) => {
         </button>
       </div>
 
-      {/* THE BRUTALIST FULL-SCREEN OVERLAY */}
+      {/* THE FULL-SCREEN OVERLAY */}
       <div 
         ref={overlayRef}
         className="fixed inset-0 z-[8000] bg-[#010101] invisible opacity-0 flex flex-col text-[#FFFCF5] font-mono"
       >
         
-        {/* HEADER ROW (No X Button) */}
+        {/* HEADER ROW */}
         <div ref={headerRef} className="flex justify-between items-center p-5 border-b border-[#FFFCF5]/20 text-xs tracking-widest uppercase">
           <span>The Nuanced Studio</span>
         </div>

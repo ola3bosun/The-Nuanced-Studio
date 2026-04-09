@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import CustomCursor from './components/global/CustomCursor';
 import SystemDock from './components/navigation/SystemDock';
 import Taskbar from './components/navigation/TaskBar';
