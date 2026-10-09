@@ -13,20 +13,40 @@ export default function CustomCursor() {
     const xSetter = gsap.quickSetter(cursor, "x", "px");
     const ySetter = gsap.quickSetter(cursor, "y", "px");
 
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let windX = 0;
+    let windY = 0;
+
+    const updatePosition = () => {
+      xSetter(mouseX - 16 + windX);
+      ySetter(mouseY - 16 + windY);
+    };
+
     const onMouseMove = (e: MouseEvent) => {
-      // Offset by 16px to perfectly center the 32x32px container
-      xSetter(e.clientX - 16);
-      ySetter(e.clientY - 16);
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      updatePosition();
+    };
+
+    const onMouseEnter = (e: MouseEvent) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      updatePosition();
+    };
+
+    const onWindOffset = (e: Event) => {
+      const customEvent = e as CustomEvent<{ x: number; y: number }>;
+      windX = customEvent.detail.x || 0;
+      windY = customEvent.detail.y || 0;
+      updatePosition();
     };
 
     const onMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       
-      // Look up the DOM tree to see if we are hovering over a trigger element
       if (target.closest('[data-cursor="drag"]')) {
         setVariant('drag');
-      } else if (target.closest('[data-cursor="invert"]')) {
-        setVariant('invert');
       } else if (target.closest('[data-cursor="link"]')) {
         setVariant('link');
       } else {
@@ -34,27 +54,33 @@ export default function CustomCursor() {
       }
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseover', onMouseOver);
+    // Immediately initialize position so cursor is visible on mount
+    updatePosition();
 
-    // Force hide the native OS cursor everywhere
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseenter', onMouseEnter);
+    window.addEventListener('mouseover', onMouseOver);
+    window.addEventListener('tns-cursor-wind', onWindOffset as EventListener);
+
+    // Force hide native OS cursor everywhere
     const style = document.createElement('style');
     style.innerHTML = `* { cursor: none !important; }`;
     document.head.appendChild(style);
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseenter', onMouseEnter);
       window.removeEventListener('mouseover', onMouseOver);
+      window.removeEventListener('tns-cursor-wind', onWindOffset as EventListener);
       document.head.removeChild(style);
     };
   }, []);
 
   const isDrag = variant === 'drag';
   const isLink = variant === 'link';
-  const isInvert = variant === 'invert';
 
-  // Toggle color based on the invert state
-  const colorClass = isInvert ? 'bg-[#010101]' : 'bg-[#E1FF00]';
+  // Always retain bright electric chartreuse, never turn black on hover
+  const colorClass = 'bg-[#E1FF00]';
 
   return (
     <div
@@ -63,16 +89,16 @@ export default function CustomCursor() {
     >
       <div className={`relative w-full h-full flex items-center justify-center transition-transform duration-200 ${isLink ? 'rotate-45' : 'rotate-0'}`}>
         
-        {/* State 1: Default / Link / Invert Crosshair */}
-        <div className={`absolute w-full h-full flex items-center justify-center transition-all duration-300 ${isDrag ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}>
-          <div className={`absolute w-[1px] h-2.5 -translate-y-[7px] ${colorClass} transition-colors duration-200`} />
-          <div className={`absolute w-[1px] h-2.5 translate-y-[7px] ${colorClass} transition-colors duration-200`} />
-          <div className={`absolute h-[1px] w-2.5 -translate-x-[7px] ${colorClass} transition-colors duration-200`} />
-          <div className={`absolute h-[1px] w-2.5 translate-x-[7px] ${colorClass} transition-colors duration-200`} />
+        {/* State 1: Default / Link Crosshair (Always chartreuse #E1FF00) */}
+        <div className={`absolute w-full h-full flex items-center justify-center transition-all duration-200 ${isDrag ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}>
+          <div className={`absolute w-[1px] h-2.5 -translate-y-[7px] ${colorClass} shadow-[0_0_6px_rgba(225,255,0,0.5)]`} />
+          <div className={`absolute w-[1px] h-2.5 translate-y-[7px] ${colorClass} shadow-[0_0_6px_rgba(225,255,0,0.5)]`} />
+          <div className={`absolute h-[1px] w-2.5 -translate-x-[7px] ${colorClass} shadow-[0_0_6px_rgba(225,255,0,0.5)]`} />
+          <div className={`absolute h-[1px] w-2.5 translate-x-[7px] ${colorClass} shadow-[0_0_6px_rgba(225,255,0,0.5)]`} />
         </div>
 
         {/* State 2: Drag Brackets [ ] */}
-        <div className={`absolute w-[18px] h-3.5 border-l-[1.5px] border-r-[1.5px] border-[#E1FF00] transition-all duration-300 ${isDrag ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.5]'}`} />
+        <div className={`absolute w-[18px] h-3.5 border-l-[1.5px] border-r-[1.5px] border-[#E1FF00] shadow-[0_0_8px_rgba(225,255,0,0.4)] transition-all duration-300 ${isDrag ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.5]'}`} />
         
       </div>
     </div>
