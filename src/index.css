@@ -4,7 +4,7 @@
   font-family: 'Clash Grotesk';
   src: url('/fonts/ClashGrotesk-Regular.woff2') format('woff2'),
        url('/fonts/ClashGrotesk-Regular.woff') format('woff');
-  font-weight: 400; /* Regular */
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -13,24 +13,75 @@
   font-family: 'Clash Grotesk';
   src: url('/fonts/ClashGrotesk-Semibold.woff2') format('woff2'),
        url('/fonts/ClashGrotesk-Semibold.woff') format('woff');
-  font-weight: 600; /* Semibold */
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Clash Grotesk';
+  src: url('/fonts/ClashGrotesk-Semibold.woff2') format('woff2'),
+       url('/fonts/ClashGrotesk-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Clash Grotesk';
+  src: url('/fonts/ClashGrotesk-Semibold.woff2') format('woff2'),
+       url('/fonts/ClashGrotesk-Semibold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme {
-  --font-sans: "Clash Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Clash Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
   background-color: #010101;
   color: #FFFCF5;
   overflow: hidden;
-  font-family: var(--font-sans); 
+  font-family: "Clash Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 ::selection {
   background-color: #FFFCF5;
   color: #010101;
+}
+
+@keyframes wind-gust-travel {
+  0% {
+    transform: translateX(0px) scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.95;
+  }
+  75% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(280px) scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes wind-streak-travel {
+  0% {
+    transform: translateX(0px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  75% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(320px);
+    opacity: 0;
+  }
 }
