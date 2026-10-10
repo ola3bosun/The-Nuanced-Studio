@@ -189,7 +189,7 @@ export default function RedesignInterstitial() {
           </div>
         </a>
 
-        {/* MONOCHROME CONTRA LOGO */}
+        {/* MONOCHROME CONTRA LOGO (OFFICIAL EMBLEM, BRAND-COMPLIANT MONOCHROME) */}
         <a
           href="https://contra.com/WorkWithSokio"
           target="_blank"
@@ -200,14 +200,24 @@ export default function RedesignInterstitial() {
           title="Work with Sokio on Contra"
         >
           <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="transition-transform duration-300 group-hover:rotate-45 group-hover:scale-110"
+            viewBox="0 0 40 40"
+            className="w-6 h-6 sm:w-7 sm:h-7 transition-transform duration-300 group-hover:scale-105"
+            fill="none"
             aria-hidden="true"
           >
-            <path d="M12 2C12.5523 2 13 2.44772 13 3V9.58579L17.6569 4.92893C18.0474 4.53841 18.6805 4.53841 19.0711 4.92893C19.4616 5.31946 19.4616 5.95262 19.0711 6.34315L14.4142 11H21C21.5523 11 22 11.4477 22 12C22 12.5523 21.5523 13 21 13H14.4142L19.0711 17.6569C19.4616 18.0474 19.4616 18.6805 19.0711 19.0711C18.6805 19.4616 18.0474 19.4616 17.6569 19.0711L13 14.4142V21C13 21.5523 12.5523 22 12 22C11.4477 22 11 21.5523 11 21V14.4142L6.34315 19.0711C5.95262 19.4616 5.31946 19.4616 4.92893 19.0711C4.53841 18.6805 4.53841 18.0474 4.92893 17.6569L9.58579 13H3C2.44772 13 2 12.5523 2 12C2 11.4477 2 12 2Z" />
+            <g clipPath="url(#contra-brand-clip)">
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M14.5837 6.53229C12.606 9.54834 10.017 12.1283 6.98663 14.0969C4.84665 15.5601 2.50067 16.75 0 17.611V18.3014H18.8041V-0.51245H18.1423C17.276 2.00859 16.0718 4.3757 14.5837 6.53229ZM22.2193 -0.51245V18.3822H41.0256V17.6917C38.5257 16.8308 36.1812 15.6408 34.0391 14.1776C31.0116 12.209 28.4204 9.62908 26.4427 6.61303C24.9388 4.43381 23.7239 2.03954 22.8554 -0.51245H22.2193ZM41.0256 21.6178H22.2193V40.5124H22.8554C23.7239 37.9612 24.938 35.5662 26.4427 33.387C28.4204 30.3709 31.0124 27.791 34.0391 25.8224C36.1812 24.3585 38.5257 23.1692 41.0256 22.3083V21.6178ZM18.8048 40.5124V21.6986H0.000754578V22.389C2.50067 23.25 4.84741 24.4399 6.98739 25.9031C10.017 27.8717 12.606 30.4525 14.5845 33.4677C16.0725 35.6243 17.2768 37.9906 18.1439 40.5117L18.8048 40.5124Z"
+                fill="currentColor"
+              />
+            </g>
+            <defs>
+              <clipPath id="contra-brand-clip">
+                <rect width="40" height="40" fill="white" />
+              </clipPath>
+            </defs>
           </svg>
         </a>
       </header>
